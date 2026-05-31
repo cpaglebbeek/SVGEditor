@@ -1,8 +1,8 @@
 {
   "name": "SVG Editor",
-  "version": "1.5.5",
-  "build": "PROD",
+  "version": "1.5.9",
+  "build": "OAK_snoop_redfix2",
   "codename": "Who_Am_I",
   "theme": "Who Am I (Jackie Chan, 1998)",
-  "note": "Baseline recovered from Downloads archive (Feb 2026); 68 historical builds in versions/"
+  "note": "Switched from PROD_1.5.5 (broken DOM: rectToolBtn nested in display:none bmpSnoopBox) to OAK_v1.5.9_snoop_redfix2 — clean structure, rect-tool visible"
 }

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="noindex,nofollow" />
-  <title>META Layout Editor (SVG + JSON) — v1.5.5 PROD</title>
+  <title>META Layout Editor (SVG + JSON) — v1.5.9 (OAK)</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -418,9 +418,21 @@ main{
   }
 
 
-  .snoopSwatch{width:22px; height:22px; border-radius:6px; border:1px solid rgba(0,0,0,.18); background:#fff; display:inline-block;}
+  /* Color snoop */
+  .snoopBox{border:1px solid rgba(0,0,0,.12); border-radius:10px; padding:8px; background:rgba(255,255,255,.55); display:flex; align-items:center; gap:8px; margin-top:8px;}
+  .snoopSwatch{width:22px; height:22px; border-radius:6px; border:1px solid rgba(0,0,0,.25); background:#ffffff;}
+  .snoopHex{min-width:70px;}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+
+
   .snoopToggle{display:flex; align-items:center; gap:6px; padding:4px 6px; border:1px solid rgba(0,0,0,.12); border-radius:8px; background:rgba(255,255,255,.35);}
   .snoopToggle input{transform:translateY(1px);}
+
+
+  /* Color snoop hover */
+  .stage-item.snoopHover{outline:2px dashed rgba(0,0,0,.45); outline-offset:2px;}
+
+  .snoopDbg{opacity:.75; font-size:11px; line-height:1.2; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 </style>
 </head>
 <body>
@@ -497,24 +509,24 @@ main{
         <button id="magnifierBtn" class="secondary">🔍 Magnifier</button>
         <button id="resetViewBtn" class="secondary">⟲ Reset view</button>
         <div class="small" id="viewHint" style="text-align:center;opacity:.85;">Wheel = zoom • Space/middle = pan</div>
+        <div class="snoopBox" id="colorSnoopBox" title="Kleur oppikken van een element">
+          <button id="colorSnoopBtn" class="secondary" type="button">🧪 Color snoop</button>
+          <label class="snoopToggle small" title="Als aan: randkleur heeft voorrang boven vulling wanneer je dicht bij de rand zit">
+            <input type="checkbox" id="snoopStrokeFirst" checked>
+            stroke-first
+          </label>
+
+          <div class="snoopSwatch" id="colorSnoopSwatch" title="Vastgezette kleur"></div>
+          <div class="snoopHex small mono" id="colorSnoopHex">—</div>
+          <div class="snoopDbg small mono" id="colorSnoopDebug">dbg: —</div>
+
+        </div>
+
 <button id="addTextBtn">T Voeg tekst</button>
 
         <button id="lineToolBtn" class="secondary" title="Teken een rechte lijn">／ Lijn</button>
 
-        
-          
-  <button class="secondary" id="bmpSnoopBtn" title="Pipet: lees kleur uit zichtbare pixels (bitmap)">🧪 Color snoop</button>
-  <div class="toolGroup" id="bmpSnoopBox" style="display:none;" title="Bitmap color snoop">
-    <div class="row" style="gap:8px; align-items:center;">
-      <span class="lbl" style="min-width:64px;">Kleur</span>
-      <span class="snoopSwatch" id="bmpSnoopSwatch" title="Hover om te meten, klik om vast te zetten"></span>
-      <span class="mono small" id="bmpSnoopHex">—</span>
-      <label class="snoopToggle small" title="Als aan: randkleur heeft voorrang wanneer je op de rand zit">
-        <input type="checkbox" id="bmpSnoopStrokeFirst" checked> stroke-first
-      </label>
-    </div>
-    
-<div class="toolGroup" id="lineToolControls" title="Instellingen voor lijn">
+        <div class="toolGroup" id="lineToolControls" title="Instellingen voor lijn">
           <div class="row">
             <label class="lbl" for="strokeColor">Kleur</label>
             <input id="strokeColor" type="color" value="#111111" />
@@ -534,9 +546,7 @@ main{
             <input id="rectStrokeColor" type="color" value="#111111" />
             <input id="rectStrokeHexTool" type="text" value="#111111" style="width:92px;" />
           </div>
-<div class="small" style="opacity:.85;">Tip: zet zoom hoger voor preciezere pipet. Klik om vast te zetten.</div>
-  </div>
-<div class="row">
+          <div class="row">
             <label class="lbl" for="rectStrokeWidth">Lijndikte</label>
             <input id="rectStrokeWidth" type="number" min="0.05" max="50" step="0.05" value="2" />
           </div>
@@ -1916,330 +1926,7 @@ function normalizeHexInput(input){
     stage.releasePointerCapture(evt.pointerId);
   });
 
-  
-  // -------- Bitmap Color Snoop (pipet via SVG snapshot -> canvas) --------
-  const bmpSnoopBtn = document.getElementById('bmpSnoopBtn');
-  const bmpSnoopBox = document.getElementById('bmpSnoopBox');
-  const bmpSnoopSwatch = document.getElementById('bmpSnoopSwatch');
-  const bmpSnoopHex = document.getElementById('bmpSnoopHex');
-  const bmpSnoopStrokeFirst = document.getElementById('bmpSnoopStrokeFirst');
-
-  const bmpSnoopState = {
-    enabled:false,
-    locked:null,
-    hover:null,
-    strokeFirst:true,
-    dirty:true,
-    building:false,
-    canvas:null,
-    ctx:null,
-    w:0, h:0,
-    dpr:1,
-    img:null,
-    url:null,
-    rebuildTimer:null
-  };
-
-  const bmpSnoopPreview = { id:null, prop:null, orig:null };
-
-  function bmpSnoopGetPreviewTarget(){
-    const el = (typeof selectedId !== 'undefined' && selectedId) ? elementById(selectedId) : null;
-    if(!el) return null;
-    if(el.locked) return null;
-    if(el.type === 'line') return {el, prop:'stroke'};
-    if(el.type === 'text') return {el, prop:'fill'};
-    return null;
-  }
-
-  function bmpSnoopPreviewApply(hx){
-    const t = bmpSnoopGetPreviewTarget();
-    if(!t) return;
-    if(bmpSnoopPreview.id !== t.el.id || bmpSnoopPreview.prop !== t.prop){
-      // switching target: restore previous preview first
-      bmpSnoopPreviewClear();
-      bmpSnoopPreview.id = t.el.id;
-      bmpSnoopPreview.prop = t.prop;
-      bmpSnoopPreview.orig = (t.el[t.prop] ?? null);
-    }
-    if(t.el[t.prop] !== hx){
-      t.el[t.prop] = hx;
-      state.meta.updatedAt = nowIso();
-      renderAll();
-    }
-  }
-
-  function bmpSnoopPreviewClear(){
-    if(!bmpSnoopPreview.id) return;
-    const el = elementById(bmpSnoopPreview.id);
-    if(el && !el.locked && bmpSnoopPreview.prop){
-      el[bmpSnoopPreview.prop] = bmpSnoopPreview.orig;
-      state.meta.updatedAt = nowIso();
-      renderAll();
-    }
-    bmpSnoopPreview.id = null;
-    bmpSnoopPreview.prop = null;
-    bmpSnoopPreview.orig = null;
-  }
-
-  function bmpSnoopApplyLockedToTarget(hx){
-    const t = bmpSnoopGetPreviewTarget();
-    if(!t) return false;
-    pushHistory(`Kleur snoop toegepast op ${t.el.type}`);
-    t.el[t.prop] = hx;
-    state.meta.updatedAt = nowIso();
-    renderAll();
-    return true;
-  }
-
-  function bmpSnoopLoad(){
-    try{
-      const l = localStorage.getItem('bmpSnoop.locked');
-      if(l) bmpSnoopState.locked = l;
-      const sf = localStorage.getItem('bmpSnoop.strokeFirst');
-      if(sf !== null) bmpSnoopState.strokeFirst = (sf === '1');
-    }catch(_){}
-    if(bmpSnoopStrokeFirst) bmpSnoopStrokeFirst.checked = !!bmpSnoopState.strokeFirst;
-    bmpSnoopRenderLocked();
-  }
-
-  function bmpSnoopSave(){
-    try{
-      if(bmpSnoopState.locked) localStorage.setItem('bmpSnoop.locked', bmpSnoopState.locked);
-      else localStorage.removeItem('bmpSnoop.locked');
-      localStorage.setItem('bmpSnoop.strokeFirst', bmpSnoopState.strokeFirst ? '1':'0');
-    }catch(_){}
-  }
-
-  function bmpSnoopRenderLocked(){
-    const hx = bmpSnoopState.locked;
-    if(bmpSnoopSwatch) bmpSnoopSwatch.style.background = hx || '#fff';
-    if(bmpSnoopHex) bmpSnoopHex.textContent = hx || '—';
-  }
-
-  function bmpSnoopRenderHover(){
-    if(!bmpSnoopState.enabled) return;
-    const hx = bmpSnoopState.hover;
-    if(hx){
-      bmpSnoopSwatch.style.background = hx;
-      bmpSnoopHex.textContent = hx;
-      bmpSnoopSwatch.title = `Hover: ${hx} (klik om vast te zetten)`;
-    }else{
-      bmpSnoopRenderLocked();
-      bmpSnoopSwatch.title = 'Hover om te meten, klik om vast te zetten';
-    }
-  }
-
-  function bmpSnoopSetEnabled(on){
-    bmpSnoopState.enabled = !!on;
-    bmpSnoopState.hover = null;
-    bmpSnoopBox.style.display = bmpSnoopState.enabled ? '' : 'none';
-    if(bmpSnoopBtn) bmpSnoopBtn.classList.toggle('active', bmpSnoopState.enabled);
-    if(bmpSnoopBtn) bmpSnoopBtn.textContent = bmpSnoopState.enabled ? '🧪 Color snoop (aan)' : '🧪 Color snoop';
-    if(bmpSnoopState.enabled){
-      bmpSnoopInvalidate('enable');
-      toast('Color snoop aan: hover voor kleur, klik om vast te zetten.');
-    }else{
-      toast('Color snoop uit.');
-    }
-    bmpSnoopRenderHover();
-      // Live preview for selected line/text
-      if(hx) bmpSnoopPreviewApply(hx); else bmpSnoopPreviewClear();
-    if(!bmpSnoopState.enabled) bmpSnoopPreviewClear();
-  }
-
-  function bmpSnoopInvalidate(reason){
-    if(!bmpSnoopState.enabled) return;
-    bmpSnoopState.dirty = true;
-    // debounce rebuild; avoid rebuilding on every pan-move
-    clearTimeout(bmpSnoopState.rebuildTimer);
-    bmpSnoopState.rebuildTimer = setTimeout(()=>bmpSnoopBuildSnapshot(), 120);
-  }
-
-  function bmpSnoopEnsureCanvas(){
-    if(!bmpSnoopState.canvas){
-      const c = document.createElement('canvas');
-      c.width = 1; c.height = 1;
-      bmpSnoopState.canvas = c;
-      bmpSnoopState.ctx = c.getContext('2d', { willReadFrequently:true });
-    }
-  }
-
-  function bmpSnoopStageSnapshotSvg(){
-    // Clone stage and remove overlays/handles/magnifier to avoid sampling UI chrome
-    const clone = stage.cloneNode(true);
-    const rmIds = ['overlayBox','overlayHandle','magG'];
-    rmIds.forEach(id => { const n = clone.querySelector('#'+id); if(n) n.remove(); });
-    // If there are other pointer overlays, remove anything with pointer-events="all" that isn't items/scene
-    clone.querySelectorAll('[pointer-events="all"]').forEach(n => {
-      if(n.id !== 'items' && n.id !== 'scene' && n.id !== 'viewport') n.remove();
-    });
-    // Set explicit size to match current on-screen pixels
-    const r = stage.getBoundingClientRect();
-    const w = Math.max(1, Math.round(r.width));
-    const h = Math.max(1, Math.round(r.height));
-    clone.setAttribute('width', String(w));
-    clone.setAttribute('height', String(h));
-    clone.setAttribute('preserveAspectRatio','none');
-    // Ensure viewBox is correct
-    if(!clone.getAttribute('viewBox') && clone.getAttribute('viewbox')){
-      clone.setAttribute('viewBox', clone.getAttribute('viewbox'));
-    }
-    return new XMLSerializer().serializeToString(clone);
-  }
-
-  async function bmpSnoopBuildSnapshot(){
-    if(!bmpSnoopState.enabled) return;
-    if(bmpSnoopState.building) return;
-    bmpSnoopState.building = true;
-    bmpSnoopEnsureCanvas();
-
-    try{
-      const r = stage.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      const w = Math.max(1, Math.round(r.width * dpr));
-      const h = Math.max(1, Math.round(r.height * dpr));
-      bmpSnoopState.dpr = dpr;
-      bmpSnoopState.w = w;
-      bmpSnoopState.h = h;
-      bmpSnoopState.canvas.width = w;
-      bmpSnoopState.canvas.height = h;
-
-      const svgText = bmpSnoopStageSnapshotSvg();
-      const blob = new Blob([svgText], {type:'image/svg+xml;charset=utf-8'});
-      if(bmpSnoopState.url) URL.revokeObjectURL(bmpSnoopState.url);
-      bmpSnoopState.url = URL.createObjectURL(blob);
-
-      const img = new Image();
-      bmpSnoopState.img = img;
-
-      await new Promise((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = (e) => reject(e);
-        img.src = bmpSnoopState.url;
-      });
-
-      const ctx = bmpSnoopState.ctx;
-      ctx.clearRect(0,0,w,h);
-      ctx.drawImage(img, 0,0, w,h);
-      bmpSnoopState.dirty = false;
-    }catch(e){
-      console.warn('bmpSnoop snapshot failed', e);
-      // Keep dirty so we can retry on next movement
-      bmpSnoopState.dirty = true;
-    }finally{
-      bmpSnoopState.building = false;
-    }
-  }
-
-  function bmpSnoopRgbToHex(r,g,b){
-    const to = (n)=>n.toString(16).padStart(2,'0');
-    return `#${to(r)}${to(g)}${to(b)}`.toUpperCase();
-  }
-
-  function bmpSnoopPickMajority3x3(px, py){
-    const ctx = bmpSnoopState.ctx;
-    const w = bmpSnoopState.w, h = bmpSnoopState.h;
-    if(!ctx || !w || !h) return null;
-
-    const x0 = Math.max(0, Math.min(w-1, px-1));
-    const y0 = Math.max(0, Math.min(h-1, py-1));
-    const x1 = Math.max(0, Math.min(w-1, px+1));
-    const y1 = Math.max(0, Math.min(h-1, py+1));
-    const sw = x1 - x0 + 1;
-    const sh = y1 - y0 + 1;
-    const data = ctx.getImageData(x0, y0, sw, sh).data;
-
-    const counts = new Map();
-    for(let i=0; i<data.length; i+=4){
-      const a = data[i+3];
-      if(a < 16) continue; // ignore near-transparent
-      const r = data[i], g=data[i+1], b=data[i+2];
-      const hx = bmpSnoopRgbToHex(r,g,b);
-      counts.set(hx, (counts.get(hx)||0)+1);
-    }
-    if(counts.size === 0) return null;
-    let best=null, bestC=-1;
-    counts.forEach((c,hx)=>{ if(c>bestC){ bestC=c; best=hx; } });
-    return best;
-  }
-
-  function bmpSnoopOnMove(evt){
-    if(!bmpSnoopState.enabled) return;
-    if(bmpSnoopState.dirty) bmpSnoopBuildSnapshot();
-    if(bmpSnoopState.dirty) return; // snapshot not ready yet
-
-    const rect = stage.getBoundingClientRect();
-    const cx = evt.clientX, cy = evt.clientY;
-    if(cx < rect.left || cx > rect.right || cy < rect.top || cy > rect.bottom){
-      if(bmpSnoopState.hover !== null){ bmpSnoopState.hover = null; bmpSnoopRenderHover();
-      // Live preview for selected line/text
-      if(hx) bmpSnoopPreviewApply(hx); else bmpSnoopPreviewClear();
-    if(!bmpSnoopState.enabled) bmpSnoopPreviewClear(); }
-      return;
-    }
-    const dpr = bmpSnoopState.dpr || 1;
-    const px = Math.round((cx - rect.left) * dpr);
-    const py = Math.round((cy - rect.top) * dpr);
-
-    const hx = bmpSnoopPickMajority3x3(px, py);
-    if(hx !== bmpSnoopState.hover){
-      bmpSnoopState.hover = hx;
-      bmpSnoopRenderHover();
-      // Live preview for selected line/text
-      if(hx) bmpSnoopPreviewApply(hx); else bmpSnoopPreviewClear();
-    if(!bmpSnoopState.enabled) bmpSnoopPreviewClear();
-    }
-  }
-
-  function bmpSnoopOnClick(evt){
-    if(!bmpSnoopState.enabled) return;
-    // lock current hover (or sample at click point)
-    bmpSnoopOnMove(evt);
-    const hx = bmpSnoopState.hover;
-    if(hx){
-      bmpSnoopState.locked = hx;
-      bmpSnoopSave();
-      // Apply locked color to selected line/text (commit)
-      bmpSnoopApplyLockedToTarget(hx);
-      toast(`Kleur vastgezet: ${hx}`);
-    }else{
-      toast('Geen kleur gevonden op dit punt.');
-    }
-    bmpSnoopPreviewClear();
-    bmpSnoopSetEnabled(false);
-  }
-
-  if(bmpSnoopBtn){
-    bmpSnoopBtn.addEventListener('click', ()=> bmpSnoopSetEnabled(!bmpSnoopState.enabled));
-  }
-  if(bmpSnoopStrokeFirst){
-    bmpSnoopStrokeFirst.addEventListener('change', ()=>{
-      bmpSnoopState.strokeFirst = !!bmpSnoopStrokeFirst.checked;
-      bmpSnoopSave();
-    });
-  }
-
-  // Capture mouse move globally while enabled (event-target independent)
-  document.addEventListener('mousemove', (e)=>{ if(bmpSnoopState.enabled) bmpSnoopOnMove(e); }, true);
-  document.addEventListener('pointermove', (e)=>{ if(bmpSnoopState.enabled) bmpSnoopOnMove(e); }, true);
-  document.addEventListener('click', (e)=>{ if(bmpSnoopState.enabled) bmpSnoopOnClick(e); }, true);
-
-  // Invalidate snapshot on view changes + major renders
-  const _origApplyView = applyView;
-  applyView = function(){
-    _origApplyView();
-    if(bmpSnoopState.enabled) bmpSnoopInvalidate('view');
-  };
-
-  const _origRenderAll = renderAll;
-  renderAll = function(){
-    _origRenderAll();
-    if(bmpSnoopState.enabled) bmpSnoopInvalidate('render');
-  };
-
-  bmpSnoopLoad();
-
-// -------- Magnifier tool --------
+  // -------- Magnifier tool --------
   const magState = { enabled:false, factor: 3.0, radiusPx: 90 };
 
   function setActiveTool(tool){
@@ -4289,6 +3976,291 @@ exportBtn.addEventListener('click', () => {
   }
 
 
+
+
+  // ---- Color snoop (hover + click lock) ----
+  const colorSnoopBtn = document.getElementById('colorSnoopBtn');
+  const colorSnoopSwatch = document.getElementById('colorSnoopSwatch');
+  const colorSnoopHex = document.getElementById('colorSnoopHex');
+  const colorSnoopDebug = document.getElementById('colorSnoopDebug');
+  const snoopStrokeFirst = document.getElementById('snoopStrokeFirst');
+
+  const colorSnoopState = {
+    enabled: false,
+    hover: null,
+    locked: null,
+    strokeFirst: true
+  };
+
+  function snoopNorm(h){
+    h = String(h||'').trim().toLowerCase();
+    if(/^#([0-9a-f]{3})$/.test(h)) return '#'+h[1]+h[1]+h[2]+h[2]+h[3]+h[3];
+    return /^#([0-9a-f]{6})$/.test(h) ? h : null;
+  }
+
+  function snoopLoad(){
+    try{
+      const v = localStorage.getItem('colorSnoop.locked');
+      const sf = localStorage.getItem('colorSnoop.strokeFirst');
+      if(sf !== null) colorSnoopState.strokeFirst = (sf === '1');
+      if(v) colorSnoopState.locked = snoopNorm(v) || null;
+    }catch(_){}
+    snoopRenderLocked();
+      snoopDbg();
+    if(snoopStrokeFirst){ snoopStrokeFirst.checked = !!colorSnoopState.strokeFirst; }
+  }
+
+  function snoopSave(){
+    try{
+      if(colorSnoopState.locked) localStorage.setItem('colorSnoop.locked', colorSnoopState.locked);
+      else localStorage.removeItem('colorSnoop.locked');
+      localStorage.setItem('colorSnoop.strokeFirst', colorSnoopState.strokeFirst ? '1' : '0');
+    }catch(_){}
+  }
+
+    const snoopDiag = { id:null, pt:null, c:null, note:'', z:1 };
+
+  function snoopDbg(){
+    if(!colorSnoopDebug) return;
+    const z = (state && state.meta && state.meta.ui && state.meta.ui.view) ? (state.meta.ui.view.z||1) : 1;
+    const id = snoopDiag.id || '—';
+    const c = snoopDiag.c || '—';
+    const p = snoopDiag.pt ? `${Math.round(snoopDiag.pt.x*10)/10},${Math.round(snoopDiag.pt.y*10)/10}` : '—';
+    const note = snoopDiag.note || '';
+    colorSnoopDebug.textContent = `dbg: on=${colorSnoopState.enabled?1:0} z=${Math.round(z*100)/100} id=${id} p=${p} c=${c} ${note}`;
+  }
+
+function snoopRenderLocked(){
+    const hx = colorSnoopState.locked;
+    if(colorSnoopSwatch) colorSnoopSwatch.style.background = hx || '#ffffff';
+    if(colorSnoopHex) colorSnoopHex.textContent = hx || '—';
+    if(colorSnoopSwatch) colorSnoopSwatch.title = hx ? `Vast: ${hx}` : 'Geen vastgezette kleur';
+  }
+
+  function snoopRenderHover(){
+    if(!colorSnoopState.enabled) return;
+    const hx = colorSnoopState.hover;
+    // show hover feedback live in the same UI fields; when hover is null, fall back to locked
+    if(hx){
+      if(colorSnoopSwatch) colorSnoopSwatch.style.background = hx;
+      if(colorSnoopHex) colorSnoopHex.textContent = hx;
+      if(colorSnoopSwatch) colorSnoopSwatch.title = `Hover: ${hx} (klik om vast te zetten)`;
+    } else {
+      snoopRenderLocked();
+      snoopDbg();
+    }
+  }
+
+  function snoopSetEnabled(on){
+    colorSnoopState.enabled = !!on;
+    if(colorSnoopBtn){ colorSnoopBtn.classList.toggle('active', colorSnoopState.enabled); colorSnoopBtn.textContent = colorSnoopState.enabled ? '🧪 Color snoop (aan)' : '🧪 Color snoop'; }
+    stage.classList.toggle('snoopActive', colorSnoopState.enabled);
+    if(!colorSnoopState.enabled) snoopSetHoverOutline(null);
+    colorSnoopState.hover = null;
+    snoopRenderHover();
+    toast(colorSnoopState.enabled ? 'Color snoop aan: hover over elementen, klik om vast te zetten' : 'Color snoop uit');
+  }
+
+  function stageUnitsPerPixel(){
+    // Robust: derive visible stage width from BASE viewBox and current zoom (z)
+    const v = (state && state.meta && state.meta.ui && state.meta.ui.view) ? state.meta.ui.view : {z:1};
+    const z = clampZoom((v && typeof v.z === 'number') ? v.z : 1);
+    const rect = stage.getBoundingClientRect();
+    if(!rect.width) return 1;
+    const visibleW = BASE_VB.w / z;
+    return visibleW / rect.width;
+  }
+
+  function snoopNum(v, d=0){
+    const n = Number(v);
+    return Number.isFinite(n) ? n : d;
+  }
+
+  function rotatePoint(px, py, cx, cy, deg){
+    const a = deg * Math.PI/180;
+    const s = Math.sin(a), c = Math.cos(a);
+    const x = px - cx, y = py - cy;
+    return { x: cx + x*c - y*s, y: cy + x*s + y*c };
+  }
+
+  function distPointToSegment(p, a, b){
+    const vx = b.x - a.x, vy = b.y - a.y;
+    const wx = p.x - a.x, wy = p.y - a.y;
+    const c1 = vx*wx + vy*wy;
+    if(c1 <= 0) return Math.hypot(p.x - a.x, p.y - a.y);
+    const c2 = vx*vx + vy*vy;
+    if(c2 <= c1) return Math.hypot(p.x - b.x, p.y - b.y);
+    const t = c1 / c2;
+    const projx = a.x + t*vx, projy = a.y + t*vy;
+    return Math.hypot(p.x - projx, p.y - projy);
+  }
+
+  function snoopColorAt(stagePt, el){
+    if(!el) return null;
+    const tol = 6 * stageUnitsPerPixel(); // constant 6px feel; smaller in stage units when zoomed in (more precise)
+    if(el.type === 'rect'){
+      // inverse rotate around center
+      const x = snoopNum(el.x), y = snoopNum(el.y), w = snoopNum(el.w), h = snoopNum(el.h);
+      const rot = snoopNum(el.rotation||0);
+      const cx = x + w/2, cy = y + h/2;
+      const p = rotatePoint(stagePt.x, stagePt.y, cx, cy, -rot);
+      const inside = (p.x >= x && p.x <= x+w && p.y >= y && p.y <= y+h);
+      if(!inside) return null;
+
+      const dEdge = Math.min(p.x - x, x+w - p.x, p.y - y, y+h - p.y);
+      const sw = snoopNum((el.strokeWidth ?? 1), 1);
+      const strokeHit = (!el.strokeNone && el.stroke && dEdge <= (tol + sw/2));
+      const fillCol = (!el.fillNone && el.fill) ? snoopNorm(el.fill) : null;
+      const strokeCol = (!el.strokeNone && el.stroke) ? snoopNorm(el.stroke) : null;
+
+      if(colorSnoopState.strokeFirst){
+        if(strokeHit && strokeCol) return strokeCol;
+        if(fillCol) return fillCol;
+        if(strokeCol) return strokeCol;
+        return null;
+      } else {
+        if(fillCol) return fillCol;
+        if(strokeHit && strokeCol) return strokeCol;
+        if(strokeCol) return strokeCol;
+        return null;
+      }
+    }
+    if(el.type === 'line'){
+      // Lines are stored normalized (nx/ny) + w/h in this editor.
+      // Coerce all numbers to avoid string-concat bugs.
+      const w = snoopNum(el.w), h = snoopNum(el.h);
+      const x1 = snoopNum(isFinite(el.nx1)? el.nx1: (el.x1 ?? 0)) * (isFinite(el.nx1)? w:1);
+      const y1 = snoopNum(isFinite(el.ny1)? el.ny1: (el.y1 ?? 0)) * (isFinite(el.ny1)? h:1);
+      const x2 = snoopNum(isFinite(el.nx2)? el.nx2: (el.x2 ?? w)) * (isFinite(el.nx2)? w:1);
+      const y2 = snoopNum(isFinite(el.ny2)? el.ny2: (el.y2 ?? h)) * (isFinite(el.ny2)? h:1);
+      const a = {x: snoopNum(el.x) + x1, y: snoopNum(el.y) + y1};
+      const b = {x: snoopNum(el.x) + x2, y: snoopNum(el.y) + y2};
+      const sw = snoopNum((el.strokeWidth ?? 1), 1);
+      const d = distPointToSegment(stagePt, a, b);
+      if(d <= (tol + sw/2)) return snoopNorm(el.stroke || '#111111');
+      return null;
+    }
+    if(el.type === 'text'){
+      return snoopNorm(el.fill || '#111111');
+    }
+    return null;
+  }
+
+    function snoopFindIdAtClientPoint(clientX, clientY){
+    // Robust hit: find the topmost DOM node at screen point and walk up to stage-item
+    const n = document.elementFromPoint(clientX, clientY);
+    let t = n;
+    while(t && t !== stage){
+      if(t.classList && t.classList.contains('stage-item')){
+        return t.getAttribute('data-id');
+      }
+      t = t.parentNode;
+    }
+    return null;
+  }
+
+function findElIdFromEvent(e){
+    let t = e.target;
+    while(t && t !== stage){
+      if(t.classList && t.classList.contains('stage-item')){
+        return t.getAttribute('data-id');
+      }
+      t = t.parentNode;
+    }
+    return null;
+  }
+
+    let snoopHoverId = null;
+  function snoopSetHoverOutline(id){
+    if(snoopHoverId && snoopHoverId !== id){
+      const prev = stage.querySelector(`.stage-item[data-id="${snoopHoverId}"]`);
+      if(prev) prev.classList.remove('snoopHover');
+    }
+    snoopHoverId = id;
+    if(id){
+      const cur = stage.querySelector(`.stage-item[data-id="${id}"]`);
+      if(cur) cur.classList.add('snoopHover');
+    }
+  }
+
+function snoopOnMove(e){
+    if(!colorSnoopState.enabled) return;
+    const id = snoopFindIdAtClientPoint(e.clientX, e.clientY) || findElIdFromEvent(e);
+    snoopSetHoverOutline(id);
+    const el = id ? elementById(id) : null;
+    if(!el){
+      if(colorSnoopState.hover !== null){
+        colorSnoopState.hover = null;
+        snoopRenderHover();
+      }
+      snoopSetHoverOutline(null);
+      snoopDiag.id=null; snoopDiag.pt=screenToStagePoint(e); snoopDiag.c=null; snoopDiag.note='no-el'; snoopDbg();
+      stage.style.cursor = '';
+      return;
+    }
+    const pt = screenToStagePoint(e);
+    const c0 = snoopColorAt(pt, el);
+    // fallback: if geometry test returns null but we are clearly over the hit-area, show element's primary paint
+    const c = c0 || (colorSnoopState.strokeFirst ? snoopNorm(el.stroke || el.fill) : snoopNorm(el.fill || el.stroke));
+    snoopDiag.id = id; snoopDiag.pt = pt; snoopDiag.c = c; snoopDiag.note = (c0? '' : 'fallback');
+    snoopDbg();
+    if(c !== colorSnoopState.hover){
+      colorSnoopState.hover = c;
+      snoopRenderHover();
+    }
+    stage.style.cursor = c ? 'crosshair' : '';
+  }
+
+  function snoopOnClick(e){
+    if(!colorSnoopState.enabled) return;
+    const id = findElIdFromEvent(e);
+    const el = id ? elementById(id) : null;
+    const pt = screenToStagePoint(e);
+    const c = el ? snoopColorAt(pt, el) : null;
+    if(c){
+      colorSnoopState.locked = c;
+      snoopSave();
+      snoopRenderLocked();
+      snoopDbg();
+    if(snoopStrokeFirst){ snoopStrokeFirst.checked = !!colorSnoopState.strokeFirst; }
+      colorSnoopState.hover = null;
+      toast(`Kleur vastgezet: ${c}`);
+      snoopSetEnabled(false);
+    } else {
+      toast('Geen kleur gevonden op deze plek');
+      snoopSetEnabled(false);
+    }
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  
+  if(snoopStrokeFirst){
+    snoopStrokeFirst.addEventListener('change', ()=>{
+      colorSnoopState.strokeFirst = !!snoopStrokeFirst.checked;
+      snoopSave();
+      toast(colorSnoopState.strokeFirst ? 'stroke-first aan' : 'stroke-first uit');
+    });
+  }
+
+if(colorSnoopBtn){
+    colorSnoopBtn.addEventListener('click', ()=>{
+      snoopSetEnabled(!colorSnoopState.enabled);
+    });
+  }
+
+  stage.addEventListener('pointermove', snoopOnMove, true);
+  stage.addEventListener('mousemove', snoopOnMove, true);
+  document.addEventListener('mousemove', (e)=>{ if(colorSnoopState.enabled) snoopOnMove(e); }, true);
+  stage.addEventListener('mouseleave', ()=>{ if(!colorSnoopState.enabled) return; colorSnoopState.hover=null; snoopSetHoverOutline(null); snoopRenderHover(); stage.style.cursor=''; }, true);
+
+  stage.addEventListener('pointerdown', (e)=>{
+    if(colorSnoopState.enabled){
+      snoopOnClick(e);
+    }
+  }, true);
+
+  snoopLoad();
 </script>
 </body>
 </html>
