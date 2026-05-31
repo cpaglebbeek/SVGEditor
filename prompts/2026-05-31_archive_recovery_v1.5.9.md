@@ -1,7 +1,9 @@
 ---
-session_date: 2026-05-31
-agent: Claude Opus 4.7 (1M context)
+date: 2026-05-31
 repo: SVGEditor
+status: done
+resume: ""
+agent: Claude Opus 4.7 (1M context)
 branch: main
 topic: Archief-recovery uit Downloads + redeploy met rect-tool fix
 ---
