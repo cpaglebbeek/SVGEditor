@@ -1,6 +1,8 @@
 {
   "name": "SVG Editor",
-  "version": "1.4.4",
+  "version": "1.5.5",
+  "build": "PROD",
   "codename": "Who_Am_I",
-  "theme": "Who Am I (Jackie Chan, 1998)"
+  "theme": "Who Am I (Jackie Chan, 1998)",
+  "note": "Baseline recovered from Downloads archive (Feb 2026); 68 historical builds in versions/"
 }

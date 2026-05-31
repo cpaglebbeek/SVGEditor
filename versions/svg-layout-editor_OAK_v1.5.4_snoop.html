@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>META Layout Editor (SVG + JSON) — v1.4.3</title>
+  <title>META Layout Editor (SVG + JSON) — v1.5.3</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -183,7 +183,9 @@ main{
       user-select:none;
       touch-action:none;
     }
-    .sel-box{ fill:none; stroke:var(--accent); stroke-width:1.5; stroke-dasharray:4 3; vector-effect: non-scaling-stroke; }
+    .sel-box{ fill:none; stroke:var(--accent); stroke-width:1.5; stroke-dasharray:4 3; vector-effect: non-scaling-stroke; 
+      pointer-events:none;
+    }
     .handle{ fill:var(--accent); stroke:#ffffff; stroke-width:1; vector-effect: non-scaling-stroke; cursor:nwse-resize; }
     .stage-item{ cursor:move; }
     .stage-item[data-locked="1"]{ cursor:not-allowed; opacity:.85; }
@@ -395,29 +397,37 @@ main{
       border:1px solid rgba(255, 220, 120, .20);
       background: rgba(255, 235, 170, .08);
     }
+    #rectToolBtn.active{
+      border-color: rgba(255, 220, 120, .70) !important;
+      box-shadow: 0 0 0 2px rgba(255, 220, 120, .16) inset;
+    }
     #lineToolBtn.active{
       border-color: rgba(255, 220, 120, .70) !important;
       box-shadow: 0 0 0 2px rgba(255, 220, 120, .16) inset;
     }
     .stageLineTool{cursor:crosshair}
+    .stageRectTool{cursor:crosshair}
 
   
-    .canvasToolbar #strokeHex{
-      width:130px;
-      text-transform:uppercase;
-    }
-    .canvasToolbar #strokeHex.invalid{
-      outline:2px solid rgba(255, 120, 120, .35);
-      border-color: rgba(255, 120, 120, .35);
-    }
+  /* Line properties */
+  #propStrokeHex{ text-transform:uppercase; }
+  #propStrokeHex.invalid{
+    outline: 2px solid rgba(255, 120, 120, .35);
+    border-color: rgba(255, 120, 120, .35);
+  }
 
-  
-    /* Properties palette picker */
-    #paletteSourceSelect, #paletteColorSelect{
-      width: 100%;
-    }
 
-  </style>
+  /* Color snoop */
+  .snoopBox{border:1px solid rgba(0,0,0,.12); border-radius:10px; padding:8px; background:rgba(255,255,255,.55); display:flex; align-items:center; gap:8px; margin-top:8px;}
+  .snoopSwatch{width:22px; height:22px; border-radius:6px; border:1px solid rgba(0,0,0,.25); background:#ffffff;}
+  .snoopHex{min-width:70px;}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+
+
+  .snoopToggle{display:flex; align-items:center; gap:6px; padding:4px 6px; border:1px solid rgba(0,0,0,.12); border-radius:8px; background:rgba(255,255,255,.35);}
+  .snoopToggle input{transform:translateY(1px);}
+
+</style>
 </head>
 <body>
   <header>
@@ -493,6 +503,17 @@ main{
         <button id="magnifierBtn" class="secondary">🔍 Magnifier</button>
         <button id="resetViewBtn" class="secondary">⟲ Reset view</button>
         <div class="small" id="viewHint" style="text-align:center;opacity:.85;">Wheel = zoom • Space/middle = pan</div>
+        <div class="snoopBox" id="colorSnoopBox" title="Kleur oppikken van een element">
+          <button id="colorSnoopBtn" class="secondary" type="button">🧪 Color snoop</button>
+          <label class="snoopToggle small" title="Als aan: randkleur heeft voorrang boven vulling wanneer je dicht bij de rand zit">
+            <input type="checkbox" id="snoopStrokeFirst" checked>
+            stroke-first
+          </label>
+
+          <div class="snoopSwatch" id="colorSnoopSwatch" title="Vastgezette kleur"></div>
+          <div class="snoopHex small mono" id="colorSnoopHex">—</div>
+        </div>
+
 <button id="addTextBtn">T Voeg tekst</button>
 
         <button id="lineToolBtn" class="secondary" title="Teken een rechte lijn">／ Lijn</button>
@@ -506,15 +527,37 @@ main{
             <label class="lbl" for="strokeWidth">Dikte</label>
             <input id="strokeWidth" type="number" min="0.05" max="50" step="0.05" value="2" />
           </div>
-        
-          <div class="row">
-            <label class="lbl" for="strokeHex">Hex</label>
-            <input id="strokeHex" type="text" value="#111111" spellcheck="false" />
-          </div>
-</div>
+        </div>
 
-        <div class="toolGroup" id="quickNameGroup"
- title="Naam van geselecteerd object">
+        
+        <button id="rectToolBtn" class="secondary" title="Teken een rechthoek">▭ Rechthoek</button>
+
+        <div class="toolGroup" id="rectToolControls" title="Instellingen voor rechthoek" style="display:none;">
+          <div class="row">
+            <label class="lbl" for="rectStrokeColor">Lijnkleur</label>
+            <input id="rectStrokeColor" type="color" value="#111111" />
+            <input id="rectStrokeHexTool" type="text" value="#111111" style="width:92px;" />
+          </div>
+          <div class="row">
+            <label class="lbl" for="rectStrokeWidth">Lijndikte</label>
+            <input id="rectStrokeWidth" type="number" min="0.05" max="50" step="0.05" value="2" />
+          </div>
+          <div class="row">
+            <label class="lbl" for="rectFillColor">Vulling</label>
+            <input id="rectFillColor" type="color" value="#FFFFFF" />
+            <input id="rectFillHexTool" type="text" value="#FFFFFF" style="width:92px;" />
+          </div>
+          <div class="row">
+            <label class="lbl" for="rectStrokeNone">Geen rand</label>
+            <input id="rectStrokeNone" type="checkbox" />
+          </div>
+          <div class="row">
+            <label class="lbl" for="rectFillNone">Geen opvulling</label>
+            <input id="rectFillNone" type="checkbox" />
+          </div>
+        </div>
+
+<div class="toolGroup" id="quickNameGroup" title="Naam van geselecteerd object">
           <div class="row">
             <label class="lbl" for="quickName">Naam</label>
             <input id="quickName" type="text" placeholder="(selecteer object)" />
@@ -570,6 +613,7 @@ main{
             <input id="propName" type="text" />
           <div class="row" style="margin-top:8px;">
             <button id="exportElementBtn" class="secondary">⬇ Export element</button>
+            <button id="exportElementSvgBtn" class="secondary">⬇ Export SVG</button>
             <button id="importElementBtn" class="secondary">⬆ Import element</button>
             <input id="importElementFile" type="file" accept="application/json" hidden />
           </div>
@@ -644,21 +688,6 @@ main{
               </div>
             </div>
 
-            <div class="field" style="margin-top:10px;">
-              <label style="opacity:.85;">Kleur uit palette van ander element</label>
-              <div class="split" style="margin-top:6px;">
-                <div class="field" style="margin:0;">
-                  <label>Kleurbron</label>
-                  <select id="paletteSourceSelect"></select>
-                </div>
-                <div class="field" style="margin:0;">
-                  <label>Palette</label>
-                  <select id="paletteColorSelect"></select>
-                </div>
-              </div>
-            </div>
-
-
             <div class="row">
               <button id="boldBtn" class="secondary">B</button>
               <button id="italicBtn" class="secondary"><i>I</i></button>
@@ -668,6 +697,99 @@ main{
         </div>
 
         
+        <!-- Line properties (parity with other elements) -->
+        <div class="field" id="lineProps" style="display:none;">
+          <label>Lijn</label>
+
+          <div class="split">
+            <div class="field" style="margin:0;">
+              <label>Stroke kleur</label>
+              <input id="propStrokeColor" type="color" value="#111111" />
+            </div>
+            <div class="field" style="margin:0;">
+              <label>Stroke hex</label>
+              <input id="propStrokeHex" type="text" placeholder="#111111" spellcheck="false" />
+            </div>
+          </div>
+
+          <div class="split">
+            <div class="field" style="margin:0;">
+              <label>Stroke dikte</label>
+              <input id="propStrokeWidth" type="number" min="0.05" max="50" step="0.05" value="2" />
+            </div>
+            <div class="field" style="margin:0;">
+              <label style="opacity:.7;">&nbsp;</label>
+              <div class="small">Min 0.05 — max 50</div>
+            </div>
+          
+          <div class="split" style="margin-top:8px;">
+            <div class="field" style="margin:0;">
+              <label>Rotatie (°)</label>
+              <input id="propRotation" type="number" min="-360" max="360" step="0.5" value="0" />
+            </div>
+            <div class="field" style="margin:0;">
+              <label style="opacity:.7;">&nbsp;</label>
+              <div style="display:flex; gap:6px; justify-content:flex-end;">
+                <button id="rotLeftBtn" class="btn" style="padding:6px 8px;">↺ -15°</button>
+                <button id="rotRightBtn" class="btn" style="padding:6px 8px;">↻ +15°</button>
+              </div>
+            </div>
+          </div>
+
+</div>
+        </div>
+
+
+        <!-- Rect properties -->
+        <div id="rectProps" class="card" style="display:none;">
+          <div class="cardTitle">Rechthoek</div>
+
+          <div class="split">
+            <div class="field" style="margin:0;">
+              <label>Lijnkleur</label>
+              <input id="propRectStrokeColor" type="color" value="#111111" />
+            </div>
+            <div class="field" style="margin:0;">
+              <label>Hex</label>
+              <input id="propRectStrokeHex" type="text" value="#111111" />
+            </div>
+          </div>
+
+          <div class="split" style="margin-top:8px;">
+            <div class="field" style="margin:0;">
+              <label>Lijndikte</label>
+              <input id="propRectStrokeWidth" type="number" min="0.05" max="50" step="0.05" value="2" />
+            </div>
+            <div class="field" style="margin:0;">
+              <label>Geen lijn</label>
+              <input id="propRectStrokeNone" type="checkbox" />
+            </div>
+          </div>
+
+          <div class="split" style="margin-top:8px;">
+            <div class="field" style="margin:0;">
+              <label>Vulling</label>
+              <input id="propRectFillColor" type="color" value="#FFFFFF" />
+            </div>
+            <div class="field" style="margin:0;">
+              <label>Hex</label>
+              <input id="propRectFillHex" type="text" value="#FFFFFF" />
+            </div>
+          </div>
+
+          <div class="split" style="margin-top:8px;">
+            <div class="field" style="margin:0;">
+              <label>Geen vulling</label>
+              <input id="propRectFillNone" type="checkbox" />
+            </div>
+            <div class="field" style="margin:0;">
+              <label style="opacity:.7;">&nbsp;</label>
+              <div class="small" style="opacity:.75; text-align:right;">(stroke/fill)</div>
+            </div>
+          </div>
+        </div>
+
+
         <div class="field">
           <label>Canvas achtergrond</label>
           <select id="bgMode">
@@ -709,6 +831,9 @@ main{
         <div class="field">
           <label>JSON (preview)</label>
           <textarea id="jsonPreview" readonly></textarea>
+          <div class="row" style="justify-content:flex-start; gap:8px; margin-top:6px;">
+            <button id="copySelectedJsonBtn" class="secondary" type="button">Kopieer geselecteerd element (JSON)</button>
+          </div>
           <div class="small">Live preview van de state (ingekort).</div>
         </div>
       </div>
@@ -721,6 +846,44 @@ main{
   const nowIso = () => new Date().toISOString();
   const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
   const round = (n, d=2) => Math.round(n * Math.pow(10, d)) / Math.pow(10, d);
+
+  const propsPanel = document.getElementById('propsPanel');
+
+  // Properties panel edit-lock: do not overwrite inputs while user is typing
+  if(propsPanel){
+    propsPanel.addEventListener('focusin', () => { propsEditing = true; }, true);
+    propsPanel.addEventListener('focusout', (e) => {
+      // only unlock if focus leaves the panel entirely
+      const next = e.relatedTarget;
+      if(!next || !propsPanel.contains(next)){
+        // commit-on-leave: ensure edits land in state before any sync overwrites UI
+        commitSelectedProps();
+        propsEditing = false;
+        syncPropsUI(true);
+      }
+}, true);
+    // ESC cancels typing lock and re-syncs current values
+    propsPanel.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        const t = e.target;
+        const tag = (t && t.tagName) ? t.tagName.toLowerCase() : '';
+        const type = (t && t.type) ? String(t.type).toLowerCase() : '';
+        // commit on Enter for inputs (avoid textarea/buttons)
+        if(tag === 'input' && type !== 'button' && type !== 'submit' && type !== 'checkbox'){
+          e.preventDefault();
+          commitSelectedProps();
+          propsEditing = false;
+          syncPropsUI(true);
+          t.blur();
+          return;
+        }
+      }
+      if(e.key === 'Escape'){
+        propsEditing = false;
+        syncPropsUI(true);
+      }
+    }, true);
+  }
 
   const toastEl = document.getElementById('toast');
   let toastTimer = null;
@@ -787,6 +950,8 @@ main{
   const itemsG = document.getElementById('items');
   const overlayBoxG = document.getElementById('overlayBox');
   const overlayHandleG = document.getElementById('overlayHandle');
+  // Overlay should never intercept pointer events (selection rect is visual only)
+  overlayBoxG.setAttribute('pointer-events','none');
 
   // Viewport tools
   const magnifierBtn = document.getElementById('magnifierBtn');
@@ -839,13 +1004,95 @@ main{
 
   const lineToolBtn = document.getElementById('lineToolBtn');
   const strokeColor = document.getElementById('strokeColor');
+  const rectToolBtn = document.getElementById('rectToolBtn');
+  const rectToolControls = document.getElementById('rectToolControls');
+  const rectStrokeColor = document.getElementById('rectStrokeColor');
+const rectStrokeWidth = document.getElementById('rectStrokeWidth');
+  const rectFillColor = document.getElementById('rectFillColor');
+const rectStrokeNone = document.getElementById('rectStrokeNone');
+  const rectFillNone = document.getElementById('rectFillNone');
+  const rectStrokeHexTool = document.getElementById('rectStrokeHexTool');
+  const rectFillHexTool = document.getElementById('rectFillHexTool');
+
+  
+
+  // Rect toolbox hex inputs (stroke/fill)
+  function setInputValidity(inp, ok){
+    if(!inp) return;
+    inp.classList.toggle('invalid', !ok);
+  }
+
+  function syncRectHexFromPickers(){
+    const sh = normalizeHexInput(rectStrokeColor?.value || "#111111") || "#111111";
+    const fh = normalizeHexInput(rectFillColor?.value || "#FFFFFF") || "#FFFFFF";
+    if(rectStrokeHexTool) rectStrokeHexTool.value = sh;
+    if(rectFillHexTool) rectFillHexTool.value = fh;
+  }
+
+  function applyRectToolboxStyleToSelected(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'rect') return;
+    if(typeof setRectPaintProps === 'function'){
+      const strokeHex = normalizeHexInput(rectStrokeColor?.value || "#111111") || "#111111";
+      const fillHex = normalizeHexInput(rectFillColor?.value || "#FFFFFF") || "#FFFFFF";
+      const sw = Math.max(0.05, Math.min(50, Number(rectStrokeWidth?.value || 2)));
+      const strokeNone = !!rectStrokeNone?.checked;
+      const fillNone = !!rectFillNone?.checked;
+      const safeFillNone = fillNone && !strokeNone;
+      setRectPaintProps(el, { stroke: strokeHex, strokeWidth: sw, strokeNone, fill: fillHex, fillNone: safeFillNone }, "Rechthoek stijl", true);
+    }else{
+      renderAll();
+    }
+  }
+
+  if(rectStrokeColor){
+    rectStrokeColor.addEventListener('input', () => { syncRectHexFromPickers(); applyStyleToSelected({ stroke: hx }, 'rect'); }, {passive:true});
+  }
+  if(rectStrokeColor){
+    rectStrokeColor.addEventListener('input', () => { syncRectHexFromPickers(); applyStyleToSelected({ stroke: hx }, 'rect'); }, {passive:true});
+  }
+  if(rectFillColor){
+    rectFillColor.addEventListener('input', () => { syncRectHexFromPickers(); applyStyleToSelected({ stroke: hx }, 'rect'); }, {passive:true});
+  }
+
+  if(rectStrokeHexTool){
+    rectStrokeHexTool.addEventListener('input', () => {
+      const hxRaw = normalizeHexInput(rectStrokeHexTool.value);
+      const hx = hxRaw ? hxRaw.toLowerCase() : null;
+      const ok = !!hx;
+      setInputValidity(rectStrokeHexTool, ok);
+      if(ok && rectStrokeColor){ rectStrokeColor.value = hx; applyStyleToSelected({ stroke: hx }, 'rect'); }
+    });
+    rectStrokeHexTool.addEventListener('blur', () => syncRectHexFromPickers());
+  }
+  if(rectFillHexTool){
+    rectFillHexTool.addEventListener('input', () => {
+      const hxRaw = normalizeHexInput(rectFillHexTool.value);
+      const hx = hxRaw ? hxRaw.toLowerCase() : null;
+      const ok = !!hx;
+      setInputValidity(rectFillHexTool, ok);
+      if(ok && rectFillColor){ rectFillColor.value = hx; applyStyleToSelected({ fill: hx }, 'rect'); }
+    });
+    rectFillHexTool.addEventListener('blur', () => syncRectHexFromPickers());
+  }
+
+// Rect tool: prevent invisible rectangles (no stroke AND no fill)
+  if(rectStrokeNone && rectFillNone){
+    rectStrokeNone.addEventListener('change', () => {
+      if(rectStrokeNone.checked) rectFillNone.checked = false;
+    });
+    rectFillNone.addEventListener('change', () => {
+      if(rectFillNone.checked) rectStrokeNone.checked = false;
+    });
+  }
+
   const strokeWidth = document.getElementById('strokeWidth');
-  const strokeHex = document.getElementById('strokeHex');
   const quickName = document.getElementById('quickName');
   const lineToolControls = document.getElementById('lineToolControls');
 
   const exportSvgBtn = document.getElementById('exportSvgBtn');
   const exportElementBtn = document.getElementById('exportElementBtn');
+  const exportElementSvgBtn = document.getElementById('exportElementSvgBtn');
   const importElementBtn = document.getElementById('importElementBtn');
   const importElementFile = document.getElementById('importElementFile');
   const exportBtn = document.getElementById('exportBtn');
@@ -869,14 +1116,33 @@ main{
   const propFont = document.getElementById('propFont');
   const propFontSize = document.getElementById('propFontSize');
   const propFill = document.getElementById('propFill');
-  const paletteSourceSelect = document.getElementById('paletteSourceSelect');
-  const paletteColorSelect = document.getElementById('paletteColorSelect');
   const propAlign = document.getElementById('propAlign');
   const boldBtn = document.getElementById('boldBtn');
   const italicBtn = document.getElementById('italicBtn');
   const underlineBtn = document.getElementById('underlineBtn');
 
+  // Line props
+  const lineProps = document.getElementById('lineProps');
+  const propStrokeColor = document.getElementById('propStrokeColor');
+  const rectProps = document.getElementById('rectProps');
+  const propRectStrokeColor = document.getElementById('propRectStrokeColor');
+  const propRectStrokeHex = document.getElementById('propRectStrokeHex');
+  const propRectStrokeWidth = document.getElementById('propRectStrokeWidth');
+  const propRectStrokeNone = document.getElementById('propRectStrokeNone');
+  const propRectFillColor = document.getElementById('propRectFillColor');
+  const propRectFillHex = document.getElementById('propRectFillHex');
+  const propRectFillNone = document.getElementById('propRectFillNone');
+
+  const propStrokeHex = document.getElementById('propStrokeHex');
+  const propStrokeWidth = document.getElementById('propStrokeWidth');
+  const propRotation = document.getElementById('propRotation');
+  const rotLeftBtn = document.getElementById('rotLeftBtn');
+  const rotRightBtn = document.getElementById('rotRightBtn');
+
   const jsonPreview = document.getElementById('jsonPreview');
+  const copySelectedJsonBtn = document.getElementById('copySelectedJsonBtn');
+
+  if(copySelectedJsonBtn) copySelectedJsonBtn.addEventListener('click', copySelectedElementJson);
 
   // Background controls
   const bgMode = document.getElementById('bgMode');
@@ -1134,6 +1400,92 @@ main{
     return { r:parseInt(s.slice(0,2),16), g:parseInt(s.slice(2,4),16), b:parseInt(s.slice(4,6),16) };
   }
 
+  
+  // Rect toolbox: hex input sync (stroke/fill)
+  
+  function normalizeHexToolValue(v){
+    v = String(v||"").trim();
+    if(!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)) return null;
+    if(v.length === 4){
+      return ("#" + v[1]+v[1] + v[2]+v[2] + v[3]+v[3]).toLowerCase();
+    }
+    return v.toLowerCase();
+  }
+  function setPickerAndApply(pickerEl, hexStr){
+    // Only selected element should change: update picker UI then apply directly to selected rect
+    if(!pickerEl || !hexStr) return;
+    pickerEl.value = hexStr;
+    if(typeof applyPaintToSelectedRect === 'function'){
+      applyStyleToSelected({ stroke: hx }, 'rect');
+      renderAll();
+    }
+  }
+function isValidHexColor(s){
+    return /^#(?:[0-9a-fA-F]{3}){1,2}$/.test(String(s||"").trim());
+  }
+  function normalizeHex6(s){
+    s = String(s||"").trim();
+    if(!isValidHexColor(s)) return null;
+    if(s.length === 4){
+      return "#" + s[1]+s[1] + s[2]+s[2] + s[3]+s[3];
+    }
+    return s.toLowerCase();
+  }
+function normalizeHexInput(input){
+    if(input == null) return null;
+    let s = String(input).trim();
+    if(!s) return null;
+    if(s[0] !== '#') s = '#' + s;
+    // allow #RGB or #RRGGBB
+    const m3 = /^#([0-9a-fA-F]{3})$/.exec(s);
+    if(m3){
+      const t = m3[1];
+      s = '#' + t[0]+t[0] + t[1]+t[1] + t[2]+t[2];
+    }
+    const m6 = /^#([0-9a-fA-F]{6})$/.exec(s);
+    if(!m6) return null;
+    return ('#' + m6[1]).toLowerCase();
+  }
+
+  function setLineStrokeProps(el, {hex, width}, label, commitHistory=true){
+    if(!el || el.type !== 'line') return;
+    const hx = normalizeHexInput(hex) || normalizeHexInput(el.stroke) || '#111111';
+    let w = Number(width);
+    if(!isFinite(w)) w = (el.strokeWidth ?? 2);
+    w = Math.max(0.05, Math.min(50, w));
+
+    if(commitHistory) pushHistory(label);
+
+    el.stroke = hx;
+    el.strokeWidth = w;
+    state.meta.updatedAt = nowIso();
+
+    // sync UI
+    if(propStrokeColor) propStrokeColor.value = hx;
+    if(propStrokeHex){ propStrokeHex.value = hx; propStrokeHex.classList.remove('invalid'); }
+    if(propStrokeWidth) propStrokeWidth.value = w;
+
+    try{ syncJsonPreview(); }catch(_){ }
+    renderAll();
+  }
+  function setLineRotationProps(el, deg, label, commitHistory=true){
+    if(!el || el.type !== 'line') return;
+    let r = Number(deg);
+    if(!isFinite(r)) r = Number(el.rotation || 0);
+    r = ((r % 360) + 360) % 360;
+    if(r > 180) r -= 360;
+    if(commitHistory) pushHistory(label);
+    el.rotation = round(r, 2);
+    state.meta.updatedAt = nowIso();
+    if(propRotation) propRotation.value = el.rotation;
+    const g = selectedId ? itemsG.querySelector(`.stage-item[data-id="${selectedId}"]`) : null;
+    if(g) g.setAttribute('transform', itemTransform(el));
+    renderSelectionOverlay();
+    try{ syncJsonPreview(); }catch(_){}
+  }
+
+
+
   const PAINT256 = buildPaintPalette256();
 
   function dominantColorFromSvgText(svgText){
@@ -1233,10 +1585,13 @@ main{
 
   // -------- Selection / interaction --------
   let selectedId = null;
+  let propsEditing = false; // edit-lock for properties panel
+
   let dragMode = null; // move|resize
   let dragStart = null;
   // -------- Line tool drawing state --------
-  let lineDrawing = null; // {start:{x,y}, cur:{x,y}, tempLineEl:SVGLineElement}
+  let lineDrawing = null;
+  let rectDrawing = null; // {start:{x,y}, cur:{x,y}, tempLineEl:SVGLineElement}
 
   function elementById(id){ return state.elements.find(e => e.id === id) || null; }
   function sortElements(){ state.elements.sort((a,b) => (a.z||0)-(b.z||0)); }
@@ -1311,6 +1666,7 @@ main{
       y2: round(b.y - minY,2),
       stroke: strokeColor?.value || "#111111",
       strokeWidth: Math.max(0.05, Math.min(50, Number(strokeWidth?.value || 2))),
+      rotation: 0,
       strokeLineCap: "round"
     });
 
@@ -1322,7 +1678,92 @@ main{
 
 
 
-  // -------- Viewport (pan/zoom) --------
+  
+  // -------- Rect tool (draw) --------
+  function ensureTempRect(){
+    if(rectDrawing && rectDrawing.tempRectEl) return rectDrawing.tempRectEl;
+    const r = document.createElementNS("http://www.w3.org/2000/svg","rect");
+    r.setAttribute('x', 0);
+    r.setAttribute('y', 0);
+    r.setAttribute('width', 1);
+    r.setAttribute('height', 1);
+    r.setAttribute('fill', 'rgba(255,235,170,0.12)');
+    r.setAttribute('stroke', rectStrokeColor?.value || "#111111");
+    r.setAttribute('stroke-width', Math.max(0.05, Math.min(50, Number(rectStrokeWidth?.value || 2))));
+    r.setAttribute('stroke-dasharray', '4 3');
+    r.setAttribute('vector-effect','non-scaling-stroke');
+    r.setAttribute('pointer-events','none');
+    itemsG.appendChild(r);
+    if(rectDrawing) rectDrawing.tempRectEl = r;
+    return r;
+  }
+
+  function updateTempRect(a,b){
+    const r = ensureTempRect();
+    const x = Math.min(a.x, b.x);
+    const y = Math.min(a.y, b.y);
+    const w = Math.max(Math.abs(b.x - a.x), 1);
+    const h = Math.max(Math.abs(b.y - a.y), 1);
+    r.setAttribute('x', x);
+    r.setAttribute('y', y);
+    r.setAttribute('width', w);
+    r.setAttribute('height', h);
+    const sw = Math.max(0.05, Math.min(50, Number(rectStrokeWidth?.value || 2)));
+    r.setAttribute('stroke', rectStrokeColor?.value || "#111111");
+    r.setAttribute('stroke-width', sw);
+  }
+
+  function finalizeRect(){
+    if(!rectDrawing) return;
+    const a = rectDrawing.start, b = rectDrawing.cur;
+
+    if(rectDrawing.tempRectEl && rectDrawing.tempRectEl.parentNode){
+      rectDrawing.tempRectEl.parentNode.removeChild(rectDrawing.tempRectEl);
+    }
+
+    const minX = Math.min(a.x, b.x);
+    const minY = Math.min(a.y, b.y);
+    const w = Math.abs(b.x - a.x);
+    const h = Math.abs(b.y - a.y);
+
+    const minSize = 1;
+    if(w < minSize || h < minSize){
+      rectDrawing = null;
+      return;
+    }
+
+    pushHistory("Rechthoek toegevoegd");
+    const id = uid();
+
+    const strokeHex = rectStrokeColor?.value || "#111111";
+    const sw = Math.max(0.05, Math.min(50, Number(rectStrokeWidth?.value || 2)));
+    const fillHex = rectFillNone?.checked ? null : (rectFillColor?.value || "#FFFFFF");
+
+    state.elements.push({
+      id, type:'rect',
+      name: 'Rechthoek',
+      x: round(minX,2),
+      y: round(minY,2),
+      w: round(Math.max(w,1),2),
+      h: round(Math.max(h,1),2),
+      z: ++state.zCounter,
+      locked: false,
+      stroke: strokeHex,
+      strokeWidth: sw,
+      strokeNone: !!rectStrokeNone?.checked,
+      fill: fillHex,
+      // never allow both strokeNone and fillNone -> keep fill if stroke removed
+      fillNone: !!rectFillNone?.checked && !rectStrokeNone?.checked,
+      rotation: 0
+    });
+
+    state.meta.updatedAt = nowIso();
+    selectedId = id;
+    rectDrawing = null;
+    renderAll();
+  }
+
+// -------- Viewport (pan/zoom) --------
   const BASE_VB = { x: 0, y: 0, w: state.page.width, h: state.page.height };
 
   // Persisted UI view state
@@ -1334,6 +1775,22 @@ main{
 
   let activeTool = null; // null | 'magnifier'
   let spaceDown = false;
+  let spaceDownSince = 0;
+
+  function resetPanState(reason=""){
+    // safety: avoid 'stuck space' keeping panning mode enabled
+    spaceDown = false;
+    spaceDownSince = 0;
+    stage.classList.remove('stagePan');
+    stage.classList.remove('dragging');
+    if(panning){
+      panning = false;
+      panStart = null;
+      try{ stage.releasePointerCapture && stage.releasePointerCapture(1); }catch(_){ }
+    }
+    if(!panning) stage.style.cursor = '';
+  }
+
 
   function clampZoom(z){ return clamp(z, Z_MIN, Z_MAX); }
 
@@ -1394,6 +1851,7 @@ main{
   window.addEventListener('keydown', (e) => {
     if(e.code === 'Space'){
       spaceDown = true;
+      spaceDownSince = Date.now();
       stage.classList.add('stagePan');
     }
     const isMac = navigator.platform.toLowerCase().includes('mac');
@@ -1411,9 +1869,19 @@ main{
       if(!panning) stage.style.cursor = '';
     }
   });
+  // Safety: if the browser loses focus while Space is held, keyup may not fire -> prevent stuck pan mode
+  window.addEventListener('blur', () => resetPanState('blur'));
+  document.addEventListener('visibilitychange', () => {
+    if(document.hidden) resetPanState('hidden');
+  });
+
+
 
   stage.addEventListener('pointerdown', (evt) => {
     // Pan gesture
+    if(spaceDown && spaceDownSince && (Date.now() - spaceDownSince > 1500)){
+      resetPanState('stuck-space');
+    }
     if(evt.button === 1 || spaceDown || (interactionMode === 'canvas' && evt.button === 0)){
       evt.preventDefault();
       evt.stopPropagation();
@@ -1455,12 +1923,22 @@ main{
 
   function setActiveTool(tool){
     activeTool = tool;
+    // Drawing tools require object interaction; avoid confusing 'canvas' mode while drawing
+    if(tool === 'line' || tool === 'rect'){
+      // Ensure we don't stay in a stuck pan state (e.g. Space key lost)
+      resetPanState('tool');
+      if(interactionMode === 'canvas') setInteractionMode('object');
+    }
     magnifierBtn.classList.toggle('active', tool === 'magnifier');
     if(lineToolBtn) lineToolBtn.classList.toggle('active', tool === 'line');
+    if(rectToolBtn) rectToolBtn.classList.toggle('active', tool === 'rect');
     stage.classList.toggle('stageMagnifier', tool === 'magnifier');
     stage.classList.toggle('stageLineTool', tool === 'line');
+    stage.classList.toggle('stageRectTool', tool === 'rect');
     magState.enabled = tool === 'magnifier';
     magG.style.display = magState.enabled ? 'block' : 'none';
+    if(lineToolControls) lineToolControls.style.display = (tool === 'line') ? 'block' : 'none';
+    if(rectToolControls) rectToolControls.style.display = (tool === 'rect') ? 'block' : 'none';
     state.meta.updatedAt = nowIso();
   }
 
@@ -1477,6 +1955,14 @@ main{
       }
       setActiveTool(activeTool === 'line' ? null : 'line');
       toast(activeTool === 'line' ? "Line tool aan" : "Line tool uit");
+    });
+  }
+
+  if(rectToolBtn){
+    rectToolBtn.addEventListener('click', () => {
+      if(interactionMode === 'canvas') setInteractionMode('object');
+      setActiveTool(activeTool === 'rect' ? null : 'rect');
+      toast(activeTool === 'rect' ? "Rechthoek tool aan" : "Rechthoek tool uit");
     });
   }
 
@@ -1613,7 +2099,33 @@ main{
     }
   }
 
-function renderAll(){
+function ensureLineNormalized(el){
+    if(!el || el.type !== 'line') return;
+    const w = Number(el.w || 0);
+    const h = Number(el.h || 0);
+    if(w <= 0 || h <= 0) return;
+    // If normalized endpoints already exist, keep them.
+    if(isFinite(el.nx1) && isFinite(el.ny1) && isFinite(el.nx2) && isFinite(el.ny2)) return;
+    const x1 = Number(el.x1 ?? 0);
+    const y1 = Number(el.y1 ?? 0);
+    const x2 = Number(el.x2 ?? w);
+    const y2 = Number(el.y2 ?? h);
+    const clamp01 = (v) => Math.max(0, Math.min(1, v));
+    el.nx1 = clamp01(x1 / w);
+    el.ny1 = clamp01(y1 / h);
+    el.nx2 = clamp01(x2 / w);
+    el.ny2 = clamp01(y2 / h);
+  }
+
+  function itemTransform(el){
+    const r = Number(el.rotation || 0);
+    if(isFinite(r) && Math.abs(r) > 0.0001){
+      return `translate(${el.x} ${el.y}) rotate(${r} ${el.w/2} ${el.h/2})`;
+    }
+    return `translate(${el.x} ${el.y})`;
+  }
+
+  function renderAll(){
     sortElements();
     // page background
     if(stageBg){
@@ -1630,7 +2142,7 @@ function renderAll(){
       g.dataset.id = el.id;
       g.dataset.type = el.type;
       g.dataset.locked = el.locked ? "1":"0";
-      g.setAttribute('transform', `translate(${el.x} ${el.y})`);
+      g.setAttribute('transform', itemTransform(el));
       g.style.pointerEvents = el.locked ? 'none' : 'auto';
 
       // Hitbox so selection/drag also works when clicking on empty/transparent areas
@@ -1669,12 +2181,31 @@ function renderAll(){
         if((el.textAnchor||"start")==="end") t.setAttribute('x', el.w);
         g.appendChild(t);
       }
+ else if(el.type === 'rect'){
+        const r = document.createElementNS("http://www.w3.org/2000/svg","rect");
+        r.setAttribute('x', 0);
+        r.setAttribute('y', 0);
+        r.setAttribute('width', el.w);
+        r.setAttribute('height', el.h);
+        const strokeNone = !!el.strokeNone;
+        const fillNone = !!el.fillNone;
+        r.setAttribute('stroke', strokeNone ? 'none' : (el.stroke || '#111111'));
+        r.setAttribute('stroke-width', strokeNone ? '0' : (el.strokeWidth ?? 2));
+        r.setAttribute('fill', fillNone ? 'none' : (el.fill || '#FFFFFF'));
+        r.setAttribute('vector-effect','non-scaling-stroke');
+        g.appendChild(r);
+      }
  else if(el.type === 'line'){
         const ln = document.createElementNS("http://www.w3.org/2000/svg","line");
-        ln.setAttribute('x1', el.x1 ?? 0);
-        ln.setAttribute('y1', el.y1 ?? 0);
-        ln.setAttribute('x2', el.x2 ?? el.w);
-        ln.setAttribute('y2', el.y2 ?? el.h);
+        ensureLineNormalized(el);
+        const x1 = (isFinite(el.nx1)? el.nx1:0) * el.w;
+        const y1 = (isFinite(el.ny1)? el.ny1:0) * el.h;
+        const x2 = (isFinite(el.nx2)? el.nx2:1) * el.w;
+        const y2 = (isFinite(el.ny2)? el.ny2:1) * el.h;
+        ln.setAttribute('x1', x1);
+        ln.setAttribute('y1', y1);
+        ln.setAttribute('x2', x2);
+        ln.setAttribute('y2', y2);
         ln.setAttribute('stroke', el.stroke || "#111111");
         ln.setAttribute('stroke-width', el.strokeWidth || 2);
         ln.setAttribute('stroke-linecap', el.strokeLineCap || "round");
@@ -1700,7 +2231,6 @@ function renderAll(){
     renderSelectionOverlay();
     syncPropsUI();
     syncQuickToolboxUI();
-    refreshPalettePickers();
     syncJsonPreview();
     refreshActionButtons();
     applyToolbarPos();
@@ -1733,7 +2263,6 @@ function renderAll(){
     renderSelectionOverlay();
     syncPropsUI();
     syncQuickToolboxUI();
-    refreshPalettePickers();
     refreshActionButtons();
     applyToolbarPos();
   }
@@ -1741,12 +2270,22 @@ function renderAll(){
   stage.addEventListener('pointerdown', (evt) => {
     if(evt.button !== 0) return;
     if(activeTool === 'line'){
-      if(interactionMode === 'canvas'){ return; }
+      if(interactionMode === 'canvas') setInteractionMode('object');
       evt.preventDefault();
       evt.stopPropagation();
       const p = screenToStagePoint(evt);
       lineDrawing = { start: p, cur: p, tempLineEl: null };
       updateTempLine(p,p);
+      stage.setPointerCapture(evt.pointerId);
+      return;
+    }
+    if(activeTool === 'rect'){
+      if(interactionMode === 'canvas') setInteractionMode('object');
+      evt.preventDefault();
+      evt.stopPropagation();
+      const p = screenToStagePoint(evt);
+      rectDrawing = { start: p, cur: p, tempRectEl: null };
+      updateTempRect(p,p);
       stage.setPointerCapture(evt.pointerId);
       return;
     }
@@ -1764,9 +2303,16 @@ function renderAll(){
       updateTempLine(lineDrawing.start, p);
       return;
     }
+    if(rectDrawing && activeTool === 'rect'){
+      const p = screenToStagePoint(evt);
+      rectDrawing.cur = p;
+      updateTempRect(rectDrawing.start, p);
+      return;
+    }
 
     if(!dragMode || !selectedId) return;
     const el = elementById(selectedId);
+      ensureLineNormalized(el);
     if(!el || el.locked) return;
 
     const p = screenToStagePoint(evt);
@@ -1778,7 +2324,7 @@ function renderAll(){
       el.y = round(clamp(dragStart.oy + dy, 0, state.page.height - el.h), 2);
       state.meta.updatedAt = nowIso();
       const g = itemsG.querySelector(`.stage-item[data-id="${selectedId}"]`);
-      if(g) g.setAttribute('transform', `translate(${el.x} ${el.y})`);
+      if(g) g.setAttribute('transform', itemTransform(el));
       renderSelectionOverlay();
       syncPropsUI(false);
       syncJsonPreview();
@@ -1818,6 +2364,19 @@ function renderAll(){
       syncPropsUI(false);
       syncJsonPreview();
     }
+
+    if(dragMode === 'rotate'){
+      const { cx, cy, startAngle, startRot } = dragStart;
+      const ang = Math.atan2(p.y - cy, p.x - cx);
+      const deltaDeg = (ang - startAngle) * 180 / Math.PI;
+      el.rotation = round((startRot + deltaDeg), 2);
+      state.meta.updatedAt = nowIso();
+      const g = itemsG.querySelector(`.stage-item[data-id="${selectedId}"]`);
+      if(g) g.setAttribute('transform', itemTransform(el));
+      renderSelectionOverlay();
+      syncPropsUI(false);
+      syncJsonPreview();
+    }
   });
 
   stage.addEventListener('pointerup', (evt) => {
@@ -1826,10 +2385,16 @@ function renderAll(){
       try{ stage.releasePointerCapture(evt.pointerId); }catch(_){}
       return;
     }
+    if(rectDrawing && activeTool === 'rect'){
+      finalizeRect();
+      try{ stage.releasePointerCapture(evt.pointerId); }catch(_){ }
+      return;
+    }
 
     if(!dragMode) return;
     if(dragMode === 'move') pushHistory("Verplaatst");
     if(dragMode === 'resize') pushHistory("Geresized");
+    if(dragMode === 'rotate') pushHistory("Geroteerd");
     dragMode = null;
     dragStart = null;
     stage.releasePointerCapture(evt.pointerId);
@@ -1850,6 +2415,7 @@ function renderAll(){
     box.setAttribute('width', el.w);
     box.setAttribute('height', el.h);
     box.setAttribute('class','sel-box');
+    box.setAttribute('pointer-events','none');
     overlayBoxG.appendChild(box);
 
     // interactive resize handle (bottom-right)
@@ -1869,7 +2435,170 @@ function renderAll(){
       dragStart = { ...screenToStagePoint(evt), hx: el.x, hy: el.y, ow: el.w, oh: el.h, hx2: el.x + el.w, hy2: el.y + el.h };
       stage.setPointerCapture(evt.pointerId);
     });
+  
+    // rotate handle (for line)
+    if(el.type === 'line'){
+      const cx = el.x + el.w/2;
+      const cy = el.y + el.h/2;
+      const topx = el.x + el.w/2;
+      const topy = el.y - 10;
+
+      const stem = document.createElementNS("http://www.w3.org/2000/svg","line");
+      stem.setAttribute('x1', topx);
+      stem.setAttribute('y1', el.y);
+      stem.setAttribute('x2', topx);
+      stem.setAttribute('y2', topy);
+      stem.setAttribute('stroke', 'rgba(0,0,0,0.35)');
+      stem.setAttribute('stroke-width', '1');
+      stem.setAttribute('vector-effect','non-scaling-stroke');
+      stem.style.pointerEvents = 'none';
+      overlayHandleG.appendChild(stem);
+
+      const rotHandle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      rotHandle.setAttribute('cx', topx);
+      rotHandle.setAttribute('cy', topy);
+      rotHandle.setAttribute('r', 2.6);
+      rotHandle.setAttribute('class','handle');
+      rotHandle.style.pointerEvents = 'all';
+      overlayHandleG.appendChild(rotHandle);
+
+      rotHandle.addEventListener('pointerdown', (evt) => {
+        evt.stopPropagation();
+        const el = elementById(selectedId);
+        if(!el || el.locked) return;
+        dragMode = 'rotate';
+        const p = screenToStagePoint(evt);
+        const a = Math.atan2(p.y - cy, p.x - cx);
+        dragStart = { cx, cy, startAngle: a, startRot: Number(el.rotation||0) };
+        stage.setPointerCapture(evt.pointerId);
+      });
+    }
+}
+
+  // Central style pipeline: single source of truth is state.elements (selected element only)
+  function applyStyleToSelected(stylePatch, typeFilter=null){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el) return;
+    if(typeFilter && el.type !== typeFilter) return;
+
+    // Only assign known fields (avoid accidental pollution)
+    const allowed = ['stroke','strokeWidth','strokeNone','fill','fillNone','opacity','name'];
+    for(const k of Object.keys(stylePatch||{})){
+      if(allowed.includes(k)){
+        el[k] = stylePatch[k];
+      }
+    }
+    renderAll();
+    syncPropsUI(true);
   }
+
+
+  // Commit currently selected element properties based on its type (used for commit-on-leave)
+  function commitSelectedProps(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el) return;
+
+    try{
+      if(el.type === 'rect' && typeof applyPropRectCommit === 'function'){
+        applyPropRectCommit();
+        return;
+      }
+      if(el.type === 'line' && typeof applyPropLineCommit === 'function'){
+        applyPropLineCommit();
+        return;
+      }
+      if(el.type === 'text' && typeof applyPropTextCommit === 'function'){
+        applyPropTextCommit();
+        return;
+      }
+      if(el.type === 'svg' && typeof applyPropSvgCommit === 'function'){
+        applyPropSvgCommit();
+        return;
+      }
+      // fallback: if there is a generic commit, use it
+      if(typeof applyPropsCommit === 'function'){
+        applyPropsCommit();
+      }
+    }catch(e){
+      console.warn('commitSelectedProps failed', e);
+    }
+  }
+
+
+  // Debug utility: export only the selected element (prevents truncated JSON preview)
+  function selectedElementSummary(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el) return null;
+
+    const base = {
+      id: el.id,
+      type: el.type,
+      name: el.name || "",
+      locked: !!el.locked,
+      x: el.x, y: el.y,
+      w: el.w, h: el.h,
+      rotation: el.rotation ?? 0,
+      z: (el.z ?? null)
+    };
+
+    // common paint-ish fields (only if present)
+    if('stroke' in el) base.stroke = el.stroke;
+    if('strokeWidth' in el) base.strokeWidth = el.strokeWidth;
+    if('strokeNone' in el) base.strokeNone = !!el.strokeNone;
+
+    if('fill' in el) base.fill = el.fill;
+    if('fillNone' in el) base.fillNone = !!el.fillNone;
+
+    // type-specific
+    if(el.type === 'text'){
+      base.text = el.text || "";
+      base.fontSize = el.fontSize;
+      base.fontFamily = el.fontFamily;
+      base.align = el.align;
+    }
+    if(el.type === 'svg'){
+      base.srcName = el.srcName || "";
+    }
+    if(el.type === 'line'){
+      base.x1 = el.x1; base.y1 = el.y1;
+      base.x2 = el.x2; base.y2 = el.y2;
+    }
+    if(el.type === 'rect'){
+      // nothing extra beyond paint fields
+    }
+
+    return base;
+  }
+
+  async function copySelectedElementJson(){
+    const summary = selectedElementSummary();
+    if(!summary){
+      alert('Geen element geselecteerd.');
+      return;
+    }
+    const txt = JSON.stringify(summary, null, 2);
+
+    // Also show it in the preview textarea for convenience
+    if(jsonPreview) jsonPreview.value = txt;
+
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(txt);
+      } else {
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = txt;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+    }catch(e){
+      // clipboard can fail due to permissions; still keep it in the preview box
+      console.warn('Clipboard copy failed', e);
+    }
+  }
+
 
   // -------- Toolbar actions --------
   function refreshActionButtons(){
@@ -1926,11 +2655,18 @@ function renderAll(){
   });
 
   // -------- Properties binding --------
-  function syncPropsUI(setFields=true){
+  
+function syncPropsUI(setFields=true){
+    // edit-lock: never overwrite fields while user is editing
+    if(propsEditing) setFields = false;
+
     const el = selectedId ? elementById(selectedId) : null;
     if(!el){
       noSelection.style.display = 'block';
       propsBox.style.display = 'none';
+      if(lineProps) lineProps.style.display = 'none';
+      if(rectProps) rectProps.style.display = 'none';
+      if(rectProps) rectProps.style.display = 'none';
       return;
     }
     noSelection.style.display = 'none';
@@ -1948,10 +2684,15 @@ function renderAll(){
     if(el.type === 'svg'){
       svgProps.style.display = 'block';
       textProps.style.display = 'none';
+      if(lineProps) lineProps.style.display = 'none';
+      if(rectProps) rectProps.style.display = 'none';
+      if(rectProps) rectProps.style.display = 'none';
       renderPaletteEditor(el);
     } else if(el.type === 'text'){
       svgProps.style.display = 'none';
       textProps.style.display = 'block';
+      if(lineProps) lineProps.style.display = 'none';
+      if(rectProps) rectProps.style.display = 'none';
       if(setFields){
         propText.value = el.text || "";
         propFont.value = el.fontFamily || "Inter";
@@ -1959,11 +2700,47 @@ function renderAll(){
         propFill.value = el.fill || "#111111";
         propAlign.value = el.textAnchor || "start";
       }
+    
+    } else if(el.type === 'rect'){
+      svgProps.style.display = 'none';
+      textProps.style.display = 'none';
+      if(lineProps) lineProps.style.display = 'none';
+      if(rectProps) rectProps.style.display = 'block';
+      if(setFields){
+        const shx = normalizeHexInput(el.stroke || "#111111") || "#111111";
+        const fhx = normalizeHexInput(el.fill || "#FFFFFF") || "#FFFFFF";
+        if(propRectStrokeColor) propRectStrokeColor.value = shx;
+        if(propRectStrokeHex){ propRectStrokeHex.value = shx; propRectStrokeHex.classList.remove('invalid'); }
+        if(propRectStrokeWidth) propRectStrokeWidth.value = (el.strokeWidth ?? 2);
+        if(propRectStrokeNone) propRectStrokeNone.checked = !!el.strokeNone;
+        if(propRectFillColor) propRectFillColor.value = fhx;
+        if(propRectFillHex){ propRectFillHex.value = fhx; propRectFillHex.classList.remove('invalid'); }
+        if(propRectFillNone) propRectFillNone.checked = !!el.fillNone;
+        // rect-no-empty sync
+        if(propRectStrokeNone && propRectFillNone && propRectStrokeNone.checked && propRectFillNone.checked){
+          propRectFillNone.checked = false;
+        }
+      }
+
+} else if(el.type === 'line'){
+      svgProps.style.display = 'none';
+      textProps.style.display = 'none';
+      if(lineProps) lineProps.style.display = 'block';
+      if(rectProps) rectProps.style.display = 'none';
+      if(setFields){
+        const hx = normalizeHexInput(el.stroke || "#111111") || "#111111";
+        if(propStrokeColor) propStrokeColor.value = hx;
+        if(propStrokeHex){ propStrokeHex.value = hx; propStrokeHex.classList.remove('invalid'); }
+        if(propStrokeWidth) propStrokeWidth.value = (el.strokeWidth ?? 2);
+        if(propRotation) propRotation.value = (el.rotation ?? 0);
+      }
     } else {
       svgProps.style.display = 'none';
       textProps.style.display = 'none';
+      if(lineProps) lineProps.style.display = 'none';
     }
   }
+
 
 
   function syncQuickToolboxUI(setFields=true){
@@ -1978,9 +2755,26 @@ function renderAll(){
       quickName.value = el.name || "";
       quickName.placeholder = el.id;
       if(el.type === 'line'){
-        const hx = normalizeHex(el.stroke || "#111111") || "#111111";
-        if(strokeColor) strokeColor.value = hx;
-        if(strokeHex){ strokeHex.value = hx; strokeHex.classList.remove('invalid'); }
+        if(strokeColor) strokeColor.value = el.stroke || "#111111";
+        if(strokeWidth) strokeWidth.value = el.strokeWidth || 2;
+      }
+      if(el.type === 'rect'){
+        if(rectStrokeColor) rectStrokeColor.value = el.stroke || "#111111";
+        if(rectStrokeWidth) rectStrokeWidth.value = el.strokeWidth || 2;
+        if(rectStrokeNone) rectStrokeNone.checked = !!el.strokeNone;
+        if(rectFillColor && !el.fillNone) rectFillColor.value = el.fill || "#FFFFFF";
+        if(rectFillNone) rectFillNone.checked = !!el.fillNone;
+        return;
+      }
+      // (legacy)
+      if(el.type === 'rect'){
+        if(rectStrokeColor) rectStrokeColor.value = el.stroke || "#111111";
+        if(rectStrokeWidth) rectStrokeWidth.value = el.strokeWidth || 2;
+        if(rectFillColor && !el.fillNone) rectFillColor.value = el.fill || "#FFFFFF";
+        if(rectFillNone) rectFillNone.checked = !!el.fillNone;
+      }
+      if(el.type === 'line'){
+        if(strokeColor) strokeColor.value = el.stroke || "#111111";
         if(strokeWidth) strokeWidth.value = el.strokeWidth || 2;
       }
     }
@@ -2019,213 +2813,146 @@ function renderAll(){
   function applyStrokeToSelectedLine(){
     const el = selectedId ? elementById(selectedId) : null;
     if(!el || el.type !== 'line') return;
-    const hx = normalizeHex(strokeColor?.value || el.stroke || "#111111") || "#111111";
-    el.stroke = hx;
-    const w = Number(strokeWidth?.value || el.strokeWidth || 2);
-    el.strokeWidth = Math.max(0.05, Math.min(50, isFinite(w) ? w : 2));
-    syncStrokeUIFromValue(hx);
+    el.stroke = strokeColor?.value || el.stroke || "#111111";
+    el.strokeWidth = Number(strokeWidth?.value || el.strokeWidth || 2);
     state.meta.updatedAt = nowIso();
     renderAll();
   }
-
-  function normalizeHex(input){
-    if(!input) return null;
-    let s = String(input).trim();
-    if(!s) return null;
-    if(s[0] !== '#') s = '#' + s;
-    // allow #RGB or #RRGGBB
-    const m1 = s.match(/^#([0-9a-fA-F]{3})$/);
-    if(m1){
-      const a = m1[1].split('');
-      return '#' + a.map(ch => ch + ch).join('').toUpperCase();
-    }
-
-  function getPaletteSources(){
-    return (state.elements || []).filter(e => e && e.type === 'svg' && e.colorMap && Object.keys(e.colorMap).length);
-  }
-
-  function paletteLabel(e){
-    return (e.name && String(e.name).trim()) ? e.name : e.id;
-  }
-
-  function getPaletteColorsFromSource(srcEl){
-    if(!srcEl || !srcEl.colorMap) return [];
-    const vals = Object.values(srcEl.colorMap);
-    const out = [];
-    const seen = new Set();
-    for(const v of vals){
-      const hx = normalizeHex(v);
-      if(hx && !seen.has(hx)){
-        seen.add(hx);
-        out.push(hx);
-      }
-    }
-    return out;
-  }
-
-  function refreshPalettePickers(){
-    if(!paletteSourceSelect || !paletteColorSelect) return;
-    const sources = getPaletteSources();
-
-    paletteSourceSelect.innerHTML = "";
-    if(!sources.length){
-      paletteSourceSelect.disabled = true;
-      paletteColorSelect.disabled = true;
-      const opt = document.createElement('option');
-      opt.textContent = "(geen palette)";
-      opt.value = "";
-      paletteSourceSelect.appendChild(opt);
-
-      paletteColorSelect.innerHTML = "";
-      const opt2 = document.createElement('option');
-      opt2.textContent = "(geen kleuren)";
-      opt2.value = "";
-      paletteColorSelect.appendChild(opt2);
-      return;
-    }
-
-    paletteSourceSelect.disabled = false;
-    for(const s of sources){
-      const opt = document.createElement('option');
-      opt.value = s.id;
-      opt.textContent = paletteLabel(s);
-      paletteSourceSelect.appendChild(opt);
-    }
-
-    const prev = paletteSourceSelect.getAttribute('data-prev') || "";
-    if(prev && sources.some(s => s.id === prev)){
-      paletteSourceSelect.value = prev;
-    } else {
-      paletteSourceSelect.value = sources[0].id;
-    }
-    refreshPaletteColors();
-  }
-
-  function refreshPaletteColors(){
-    if(!paletteSourceSelect || !paletteColorSelect) return;
-    const srcId = paletteSourceSelect.value;
-    paletteSourceSelect.setAttribute('data-prev', srcId);
-
-    const srcEl = srcId ? elementById(srcId) : null;
-    const colors = getPaletteColorsFromSource(srcEl);
-
-    paletteColorSelect.innerHTML = "";
-    if(!colors.length){
-      paletteColorSelect.disabled = true;
-      const opt = document.createElement('option');
-      opt.textContent = "(geen kleuren)";
-      opt.value = "";
-      paletteColorSelect.appendChild(opt);
-      return;
-    }
-
-    paletteColorSelect.disabled = false;
-    for(const c of colors){
-      const opt = document.createElement('option');
-      opt.value = c;
-      opt.textContent = c;
-      paletteColorSelect.appendChild(opt);
-    }
-
-    const sel = selectedId ? elementById(selectedId) : null;
-    const current = sel ? normalizeHex(sel.type === 'line' ? sel.stroke : (sel.type === 'text' ? sel.fill : "")) : null;
-    if(current && colors.includes(current)){
-      paletteColorSelect.value = current;
-    }
-  }
-
-  function applyPaletteColorToSelected(){
-    const sel = selectedId ? elementById(selectedId) : null;
-    if(!sel) return;
-    const hx = normalizeHex(paletteColorSelect?.value);
-    if(!hx) return;
-
-    // History snapshot for deterministic undo
-    pushHistory("Palette kleur toegepast");
-
-    if(sel.type === 'line'){
-      sel.stroke = hx;
-      if(strokeColor) strokeColor.value = hx;
-      if(strokeHex){ strokeHex.value = hx; strokeHex.classList.remove('invalid'); }
-      state.meta.updatedAt = nowIso();
-      renderAll();
-      return;
-    }
-    if(sel.type === 'text'){
-      sel.fill = hx;
-      try{ propFill.value = hx; }catch(_){}
-      state.meta.updatedAt = nowIso();
-      renderAll();
-      return;
-    }
-  }
-
-  if(paletteSourceSelect){
-    paletteSourceSelect.addEventListener('change', () => {
-      refreshPaletteColors();
-    });
-  }
-  if(paletteColorSelect){
-    paletteColorSelect.addEventListener('change', () => {
-      applyPaletteColorToSelected();
-    });
-  }
-
-    const m2 = s.match(/^#([0-9a-fA-F]{6})$/);
-    if(m2){
-      return ('#' + m2[1]).toUpperCase();
-    }
-    return null;
-  }
-
-  function syncStrokeUIFromValue(hex){
-    if(strokeColor) strokeColor.value = hex;
-    if(strokeHex){
-      strokeHex.value = hex;
-      strokeHex.classList.remove('invalid');
-    }
-  }
-
-  function getColorFromElement(el){
-    if(!el) return null;
-    if(el.type === 'line' && el.stroke) return normalizeHex(el.stroke);
-    if(el.type === 'text' && el.fill) return normalizeHex(el.fill);
-    if(el.type === 'svg'){
-      // best-effort: try first key in colorMap
-      if(el.colorMap){
-        const keys = Object.keys(el.colorMap);
-        for(const k of keys){
-          const v = el.colorMap[k];
-          const hx = normalizeHex(v);
-          if(hx) return hx;
-        }
-      }
-    }
-    return null;
-  }
-
-  if(strokeColor) strokeColor.addEventListener('input', () => {
-    const hx = normalizeHex(strokeColor.value);
-    if(hx) syncStrokeUIFromValue(hx);
-    applyStrokeToSelectedLine();
-  });
+  if(strokeColor) strokeColor.addEventListener('input', applyStrokeToSelectedLine);
   if(strokeWidth) strokeWidth.addEventListener('input', applyStrokeToSelectedLine);
+  // Quick toolbox: apply rect paint edits to selected rect (parity with line)
+  function applyPaintToSelectedRect(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'rect') return;
 
-  if(strokeHex){
-    strokeHex.addEventListener('input', () => {
-      const hx = normalizeHex(strokeHex.value);
-      if(!hx){
-        strokeHex.classList.add('invalid');
-        return;
+    // Read from rect tool controls (these also serve as quick-edit inputs)
+    const strokeHex = normalizeHexInput(rectStrokeColor?.value) || el.stroke || "#111111";
+    const fillHex   = normalizeHexInput(rectFillColor?.value) || el.fill || "#FFFFFF";
+    const sw = Math.max(0.05, Math.min(50, Number(rectStrokeWidth?.value || el.strokeWidth || 2)));
+
+    const strokeNone = !!rectStrokeNone?.checked;
+    const fillNone   = !!rectFillNone?.checked;
+
+    // Prevent invisible rectangle
+    const safeFillNone = fillNone && !strokeNone;
+    setRectPaintProps(el, {
+      stroke: strokeHex,
+      strokeWidth: sw,
+      strokeNone: strokeNone,
+      fill: fillHex,
+      fillNone: safeFillNone
+    }, "Rechthoek stijl", false);
+  }
+
+  if(rectStrokeColor) rectStrokeColor.addEventListener('input', applyPaintToSelectedRect);
+  if(rectStrokeWidth) rectStrokeWidth.addEventListener('input', applyPaintToSelectedRect);
+  if(rectFillColor) rectFillColor.addEventListener('input', applyPaintToSelectedRect);
+  if(rectStrokeNone) rectStrokeNone.addEventListener('change', () => {
+    if(rectStrokeNone.checked && rectFillNone) rectFillNone.checked = false;
+    applyStyleToSelected({ stroke: hx }, 'rect');
+  });
+  if(rectFillNone) rectFillNone.addEventListener('change', () => {
+    if(rectFillNone.checked && rectStrokeNone) rectStrokeNone.checked = false;
+    applyStyleToSelected({ stroke: hx }, 'rect');
+  });
+
+
+
+
+  // Properties panel: stroke edits for selected line (parity with other elements)
+  function applyPropStrokePreview(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'line') return;
+    const hx = normalizeHexInput(propStrokeHex?.value || propStrokeColor?.value) || null;
+    const w  = propStrokeWidth?.value;
+    if(propStrokeHex){
+      if(hx){ propStrokeHex.classList.remove('invalid'); }
+      else { propStrokeHex.classList.add('invalid'); return; }
+    }
+    setLineStrokeProps(el, {hex: hx, width: w}, "Stroke aangepast", false);
+  }
+  function applyPropStrokeCommit(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'line') return;
+    const hx = normalizeHexInput(propStrokeHex?.value || propStrokeColor?.value) || null;
+    const w  = propStrokeWidth?.value;
+    if(propStrokeHex){
+      if(hx){ propStrokeHex.classList.remove('invalid'); }
+      else { propStrokeHex.classList.add('invalid'); return; }
+    }
+    setLineStrokeProps(el, {hex: hx, width: w}, "Stroke aangepast", true);
+  }
+
+  if(propStrokeColor){
+    propStrokeColor.addEventListener('input', () => {
+      if(propStrokeHex){
+        const hx = normalizeHexInput(propStrokeColor.value);
+        if(hx){ propStrokeHex.value = hx; propStrokeHex.classList.remove('invalid'); }
       }
-      syncStrokeUIFromValue(hx);
-      applyStrokeToSelectedLine();
+      applyPropStrokePreview();
     });
-    strokeHex.addEventListener('blur', () => {
-      const hx = normalizeHex(strokeHex.value);
-      if(!hx){ strokeHex.classList.add('invalid'); return; }
-      syncStrokeUIFromValue(hx);
-      applyStrokeToSelectedLine();
+    propStrokeColor.addEventListener('change', applyPropStrokeCommit);
+  }
+
+  if(propStrokeHex){
+    propStrokeHex.addEventListener('input', () => {
+      const hx = normalizeHexInput(propStrokeHex.value);
+      if(hx){
+        propStrokeHex.classList.remove('invalid');
+        if(propStrokeColor) propStrokeColor.value = hx;
+        applyPropStrokePreview();
+      } else {
+        propStrokeHex.classList.add('invalid');
+      }
+    });
+    propStrokeHex.addEventListener('change', applyPropStrokeCommit);
+    propStrokeHex.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        applyPropStrokeCommit();
+      }
+    });
+    propStrokeHex.addEventListener('blur', applyPropStrokeCommit);
+  }
+
+  if(propStrokeWidth){
+    propStrokeWidth.addEventListener('input', applyPropStrokePreview);
+    propStrokeWidth.addEventListener('change', applyPropStrokeCommit);
+  }
+
+  function applyPropRotationPreview(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'line') return;
+    setLineRotationProps(el, propRotation?.value, "Rotatie aangepast", false);
+  }
+  function applyPropRotationCommit(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'line') return;
+    setLineRotationProps(el, propRotation?.value, "Rotatie aangepast", true);
+    renderAll();
+  }
+
+  if(propRotation){
+    propRotation.addEventListener('input', applyPropRotationPreview);
+    propRotation.addEventListener('change', applyPropRotationCommit);
+    propRotation.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){ e.preventDefault(); applyPropRotationCommit(); }
+    });
+  }
+  if(rotLeftBtn){
+    rotLeftBtn.addEventListener('click', () => {
+      const el = selectedId ? elementById(selectedId) : null;
+      if(!el || el.type !== 'line') return;
+      setLineRotationProps(el, Number(el.rotation||0) - 15, "Geroteerd", true);
+      renderAll();
+    });
+  }
+  if(rotRightBtn){
+    rotRightBtn.addEventListener('click', () => {
+      const el = selectedId ? elementById(selectedId) : null;
+      if(!el || el.type !== 'line') return;
+      setLineRotationProps(el, Number(el.rotation||0) + 15, "Geroteerd", true);
+      renderAll();
     });
   }
 
@@ -2648,7 +3375,21 @@ function renderAll(){
     toast("SVG geëxporteerd.");
   });
 
-  function exportCanvasToSvg(){
+  
+
+  function exportSelectedElementToSvg(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el){ toast("Selecteer eerst een element."); return null; }
+    const oldElements = state.elements;
+    try{
+      state.elements = [el];
+      return exportCanvasToSvg();
+    } finally {
+      state.elements = oldElements;
+    }
+  }
+
+function exportCanvasToSvg(){
     sortElements();
     const xmlns = "http://www.w3.org/2000/svg";
     const doc = document.implementation.createDocument(xmlns, "svg", null);
@@ -2820,6 +3561,34 @@ function renderAll(){
       } else if(el.type === "text"){
         importTextIntoGroup(el, g);
       }
+      else if(el.type === "rect"){
+        const r = doc.createElementNS(xmlns, "rect");
+        r.setAttribute("x", "0");
+        r.setAttribute("y", "0");
+        r.setAttribute("width", String(el.w));
+        r.setAttribute("height", String(el.h));
+        const strokeNone = !!el.strokeNone;
+        const fillNone = !!el.fillNone;
+        r.setAttribute("stroke", strokeNone ? "none" : (el.stroke || "#111111"));
+        r.setAttribute("stroke-width", String(el.strokeWidth ?? 1));
+        r.setAttribute("fill", fillNone ? "none" : (el.fill || "#ffffff"));
+        r.setAttribute("vector-effect","non-scaling-stroke");
+        g.appendChild(r);
+      } else if(el.type === "line"){
+        const ln = doc.createElementNS(xmlns, "line");
+        ln.setAttribute("x1", String(el.x1 ?? 0));
+        ln.setAttribute("y1", String(el.y1 ?? 0));
+        ln.setAttribute("x2", String(el.x2 ?? (el.w ?? 0)));
+        ln.setAttribute("y2", String(el.y2 ?? (el.h ?? 0)));
+        ln.setAttribute("stroke", (el.stroke || "#111111"));
+        ln.setAttribute("stroke-width", String(el.strokeWidth ?? 1));
+        ln.setAttribute("fill", "none");
+        ln.setAttribute("vector-effect","non-scaling-stroke");
+        if(el.strokeLineCap) ln.setAttribute("stroke-linecap", el.strokeLineCap);
+        if(el.strokeLineJoin) ln.setAttribute("stroke-linejoin", el.strokeLineJoin);
+        if(el.strokeDashArray) ln.setAttribute("stroke-dasharray", el.strokeDashArray);
+        g.appendChild(ln);
+      }
 
       root.appendChild(g);
     }
@@ -2829,7 +3598,19 @@ function renderAll(){
 
 
   // -------- Element package export/import --------
-  exportElementBtn.addEventListener('click', () => {
+  
+  if(exportElementSvgBtn){
+    exportElementSvgBtn.addEventListener('click', () => {
+      const el = selectedId ? elementById(selectedId) : null;
+      if(!el){ toast("Selecteer eerst een element."); return; }
+      const svgText = exportSelectedElementToSvg();
+      if(!svgText) return;
+      download(`element_${(el.name||el.id).replace(/\s+/g,'_')}.svg`, svgText, "image/svg+xml");
+      toast("Element SVG geëxporteerd.");
+    });
+  }
+
+exportElementBtn.addEventListener('click', () => {
     const el = selectedId ? elementById(selectedId) : null;
     if(!el){ toast("Selecteer eerst een element."); return; }
     const pkg = buildElementPackage(el);
@@ -2867,7 +3648,8 @@ function renderAll(){
       assets: {},
       element: JSON.parse(JSON.stringify(el))
     };
-    if(el.type === 'svg'){
+
+if(el.type === 'svg'){
       const a = state.assets[el.assetId];
       if(a){
         // hash for dedupe
@@ -3059,6 +3841,414 @@ exportBtn.addEventListener('click', () => {
   renderAll();
   toast("Laad een SVG asset in (links) en plaats 'm op de pagina.");
 })();
+  // -------- Rect properties (stroke/fill) --------
+  function setRectPaintProps(el, {stroke, strokeWidth, strokeNone, fill, fillNone}, label, commitHistory=true){
+    if(!el || el.type !== 'rect') return;
+    if(commitHistory) pushHistory(label);
+    if(stroke !== undefined) el.stroke = stroke;
+    if(strokeWidth !== undefined) el.strokeWidth = strokeWidth;
+    if(strokeNone !== undefined) el.strokeNone = !!strokeNone;
+    if(fill !== undefined) el.fill = fill;
+    if(fillNone !== undefined) el.fillNone = !!fillNone;
+
+    // invariant: rect must be visible (either stroke or fill)
+    if(el.strokeNone && el.fillNone){
+      // prefer keeping fill when stroke is turned off; force fill back on
+      el.fillNone = false;
+    }
+
+    // sync UI (rect)
+    try{
+      const shx = normalizeHexInput(el.stroke || '#111111') || '#111111';
+      const fhx = normalizeHexInput(el.fill || '#FFFFFF') || '#FFFFFF';
+      if(propRectStrokeColor) propRectStrokeColor.value = shx;
+      if(propRectStrokeHex){ propRectStrokeHex.value = shx; propRectStrokeHex.classList.remove('invalid'); }
+      if(propRectStrokeWidth) propRectStrokeWidth.value = (el.strokeWidth ?? 2);
+      if(propRectStrokeNone) propRectStrokeNone.checked = !!el.strokeNone;
+      if(propRectFillColor) propRectFillColor.value = fhx;
+      if(propRectFillHex){ propRectFillHex.value = fhx; propRectFillHex.classList.remove('invalid'); }
+      if(propRectFillNone) propRectFillNone.checked = !!el.fillNone;
+
+      // toolbox rect controls (also quick-edit)
+      if(rectStrokeColor) rectStrokeColor.value = shx;
+      if(rectStrokeWidth) rectStrokeWidth.value = (el.strokeWidth ?? 2);
+      if(rectStrokeNone) rectStrokeNone.checked = !!el.strokeNone;
+      if(rectFillColor) rectFillColor.value = fhx;
+      if(rectFillNone) rectFillNone.checked = !!el.fillNone;
+    }catch(_){ }
+
+    state.meta.updatedAt = nowIso();
+    renderAll();
+  }
+
+  function applyPropRectPreview(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'rect') return;
+    const strokeHex = normalizeHexInput(propRectStrokeHex?.value) || (el.stroke || '#111111');
+    const fillHex = normalizeHexInput(propRectFillHex?.value) || (el.fill || '#FFFFFF');
+    const sw = Math.max(0.05, Math.min(50, Number(propRectStrokeWidth?.value || (el.strokeWidth ?? 2))));
+    // preview without history
+    const strokeNone = !!propRectStrokeNone?.checked;
+    const fillNone = !!propRectFillNone?.checked;
+    const safeFillNone = fillNone && !strokeNone;
+    setRectPaintProps(el, {
+      stroke: strokeHex,
+      strokeWidth: sw,
+      strokeNone: strokeNone,
+      fill: fillHex,
+      fillNone: safeFillNone
+    }, "Rechthoek stijl", false);
+  }
+
+  function applyPropRectCommit(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'rect') return;
+    const strokeHex = normalizeHexInput(propRectStrokeHex?.value) || (el.stroke || '#111111');
+    const fillHex = normalizeHexInput(propRectFillHex?.value) || (el.fill || '#FFFFFF');
+    const sw = Math.max(0.05, Math.min(50, Number(propRectStrokeWidth?.value || (el.strokeWidth ?? 2))));
+    const strokeNone = !!propRectStrokeNone?.checked;
+    const fillNone = !!propRectFillNone?.checked;
+    const safeFillNone = fillNone && !strokeNone;
+    setRectPaintProps(el, {
+      stroke: strokeHex,
+      strokeWidth: sw,
+      strokeNone: strokeNone,
+      fill: fillHex,
+      fillNone: safeFillNone
+    }, "Rechthoek stijl", true);
+  }
+
+  if(propRectStrokeColor){
+    propRectStrokeColor.addEventListener('input', () => {
+      if(propRectStrokeHex) propRectStrokeHex.value = propRectStrokeColor.value;
+      applyPropRectPreview();
+    });
+    propRectStrokeColor.addEventListener('change', () => {
+      if(propRectStrokeHex) propRectStrokeHex.value = propRectStrokeColor.value;
+      applyPropRectCommit();
+    });
+  }
+  if(propRectStrokeHex){
+    propRectStrokeHex.addEventListener('input', applyPropRectPreview);
+    propRectStrokeHex.addEventListener('change', applyPropRectCommit);
+    propRectStrokeHex.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyPropRectCommit(); }});
+  }
+  if(propRectStrokeWidth){
+    propRectStrokeWidth.addEventListener('input', applyPropRectPreview);
+    propRectStrokeWidth.addEventListener('change', applyPropRectCommit);
+  }
+  if(propRectStrokeNone){
+    propRectStrokeNone.addEventListener('change', () => {
+      // rect-no-empty: prevent strokeNone + fillNone simultaneously
+      if(propRectStrokeNone.checked && propRectFillNone) propRectFillNone.checked = false;
+      applyPropRectCommit();
+    });
+  }
+  if(propRectFillColor){
+    propRectFillColor.addEventListener('input', () => {
+      if(propRectFillHex) propRectFillHex.value = propRectFillColor.value;
+      applyPropRectPreview();
+    });
+    propRectFillColor.addEventListener('change', () => {
+      if(propRectFillHex) propRectFillHex.value = propRectFillColor.value;
+      applyPropRectCommit();
+    });
+  }
+  if(propRectFillHex){
+    propRectFillHex.addEventListener('input', applyPropRectPreview);
+    propRectFillHex.addEventListener('change', applyPropRectCommit);
+    propRectFillHex.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyPropRectCommit(); }});
+  }
+  if(propRectFillNone){
+    propRectFillNone.addEventListener('change', () => {
+      // rect-no-empty: prevent strokeNone + fillNone simultaneously
+      if(propRectFillNone.checked && propRectStrokeNone) propRectStrokeNone.checked = false;
+      applyPropRectCommit();
+    });
+  }
+
+
+
+
+  // ---- Color snoop (hover + click lock) ----
+  const colorSnoopBtn = document.getElementById('colorSnoopBtn');
+  const colorSnoopSwatch = document.getElementById('colorSnoopSwatch');
+  const colorSnoopHex = document.getElementById('colorSnoopHex');
+  const snoopStrokeFirst = document.getElementById('snoopStrokeFirst');
+
+  const colorSnoopState = {
+    enabled: false,
+    hover: null,
+    locked: null,
+    strokeFirst: true
+  };
+
+  function snoopNorm(h){
+    h = String(h||'').trim().toLowerCase();
+    if(/^#([0-9a-f]{3})$/.test(h)) return '#'+h[1]+h[1]+h[2]+h[2]+h[3]+h[3];
+    return /^#([0-9a-f]{6})$/.test(h) ? h : null;
+  }
+
+  function snoopLoad(){
+    try{
+      const v = localStorage.getItem('colorSnoop.locked');
+      const sf = localStorage.getItem('colorSnoop.strokeFirst');
+      if(sf !== null) colorSnoopState.strokeFirst = (sf === '1');
+      if(v) colorSnoopState.locked = snoopNorm(v) || null;
+    }catch(_){}
+    snoopRenderLocked();
+    if(snoopStrokeFirst){ snoopStrokeFirst.checked = !!colorSnoopState.strokeFirst; }
+  }
+
+  function snoopSave(){
+    try{
+      if(colorSnoopState.locked) localStorage.setItem('colorSnoop.locked', colorSnoopState.locked);
+      else localStorage.removeItem('colorSnoop.locked');
+      localStorage.setItem('colorSnoop.strokeFirst', colorSnoopState.strokeFirst ? '1' : '0');
+    }catch(_){}
+  }
+
+  function snoopRenderLocked(){
+    const hx = colorSnoopState.locked;
+    if(colorSnoopSwatch) colorSnoopSwatch.style.background = hx || '#ffffff';
+    if(colorSnoopHex) colorSnoopHex.textContent = hx || '—';
+    if(colorSnoopSwatch) colorSnoopSwatch.title = hx ? `Vast: ${hx}` : 'Geen vastgezette kleur';
+  }
+
+  function snoopSetEnabled(on){
+    colorSnoopState.enabled = !!on;
+    if(colorSnoopBtn) colorSnoopBtn.classList.toggle('active', colorSnoopState.enabled);
+    stage.classList.toggle('snoopActive', colorSnoopState.enabled);
+    toast(colorSnoopState.enabled ? 'Color snoop aan: hover over elementen, klik om vast te zetten' : 'Color snoop uit');
+  }
+
+  function stageUnitsPerPixel(){
+    const v = state.meta.ui.view;
+    const z = clampZoom(v.z || 1);
+    const rect = stage.getBoundingClientRect();
+    if(!rect.width) return 1;
+    const visibleW = BASE_VB.w / z;
+    return visibleW / rect.width;
+  }
+
+  function rotatePoint(px, py, cx, cy, deg){
+    const a = deg * Math.PI/180;
+    const s = Math.sin(a), c = Math.cos(a);
+    const x = px - cx, y = py - cy;
+    return { x: cx + x*c - y*s, y: cy + x*s + y*c };
+  }
+
+  function distPointToSegment(p, a, b){
+    const vx = b.x - a.x, vy = b.y - a.y;
+    const wx = p.x - a.x, wy = p.y - a.y;
+    const c1 = vx*wx + vy*wy;
+    if(c1 <= 0) return Math.hypot(p.x - a.x, p.y - a.y);
+    const c2 = vx*vx + vy*vy;
+    if(c2 <= c1) return Math.hypot(p.x - b.x, p.y - b.y);
+    const t = c1 / c2;
+    const projx = a.x + t*vx, projy = a.y + t*vy;
+    return Math.hypot(p.x - projx, p.y - projy);
+  }
+
+  function snoopColorAt(stagePt, el){
+    if(!el) return null;
+    const tol = 6 * stageUnitsPerPixel(); // constant 6px feel; smaller in stage units when zoomed in (more precise)
+    if(el.type === 'rect'){
+      // inverse rotate around center
+      const cx = el.x + el.w/2, cy = el.y + el.h/2;
+      const p = rotatePoint(stagePt.x, stagePt.y, cx, cy, -(el.rotation||0));
+      const inside = (p.x >= el.x && p.x <= el.x+el.w && p.y >= el.y && p.y <= el.y+el.h);
+      if(!inside) return null;
+
+      const dEdge = Math.min(p.x - el.x, el.x+el.w - p.x, p.y - el.y, el.y+el.h - p.y);
+      const sw = (el.strokeWidth ?? 1);
+      const strokeHit = (!el.strokeNone && el.stroke && dEdge <= (tol + sw/2));
+      const fillCol = (!el.fillNone && el.fill) ? snoopNorm(el.fill) : null;
+      const strokeCol = (!el.strokeNone && el.stroke) ? snoopNorm(el.stroke) : null;
+
+      if(colorSnoopState.strokeFirst){
+        if(strokeHit && strokeCol) return strokeCol;
+        if(fillCol) return fillCol;
+        if(strokeCol) return strokeCol;
+        return null;
+      } else {
+        if(fillCol) return fillCol;
+        if(strokeHit && strokeCol) return strokeCol;
+        if(strokeCol) return strokeCol;
+        return null;
+      }
+    }
+    if(el.type === 'line'){
+      const a = {x: el.x1 ?? el.x ?? 0, y: el.y1 ?? el.y ?? 0};
+      const b = {x: el.x2 ?? (el.x1 ?? 0) + (el.w ?? 0), y: el.y2 ?? (el.y1 ?? 0) + (el.h ?? 0)};
+      const sw = (el.strokeWidth ?? 1);
+      const d = distPointToSegment(stagePt, a, b);
+      if(d <= (tol + sw/2)) return snoopNorm(el.stroke || '#111111');
+      return null;
+    }
+    if(el.type === 'text'){
+      return snoopNorm(el.fill || '#111111');
+    }
+    return null;
+  }
+
+  function findElIdFromEvent(e){
+    let t = e.target;
+    while(t && t !== stage){
+      if(t.classList && t.classList.contains('stage-item')){
+        return t.getAttribute('data-id');
+      }
+      t = t.parentNode;
+    }
+    return null;
+  }
+
+  function snoopOnMove(e){
+    if(!colorSnoopState.enabled) return;
+    const id = findElIdFromEvent(e);
+    const el = id ? elementById(id) : null;
+    if(!el){ colorSnoopState.hover = null; return; }
+    const pt = screenToStagePoint(e);
+    const c = snoopColorAt(pt, el);
+    colorSnoopState.hover = c;
+    // optional: change cursor if color found
+    stage.style.cursor = c ? 'crosshair' : '';
+  }
+
+  function snoopOnClick(e){
+    if(!colorSnoopState.enabled) return;
+    const id = findElIdFromEvent(e);
+    const el = id ? elementById(id) : null;
+    const pt = screenToStagePoint(e);
+    const c = el ? snoopColorAt(pt, el) : null;
+    if(c){
+      colorSnoopState.locked = c;
+      snoopSave();
+      snoopRenderLocked();
+    if(snoopStrokeFirst){ snoopStrokeFirst.checked = !!colorSnoopState.strokeFirst; }
+      toast(`Kleur vastgezet: ${c}`);
+      snoopSetEnabled(false);
+    } else {
+      toast('Geen kleur gevonden op deze plek');
+      snoopSetEnabled(false);
+    }
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  
+  if(snoopStrokeFirst){
+    snoopStrokeFirst.addEventListener('change', ()=>{
+      colorSnoopState.strokeFirst = !!snoopStrokeFirst.checked;
+      snoopSave();
+      toast(colorSnoopState.strokeFirst ? 'stroke-first aan' : 'stroke-first uit');
+    });
+  }
+
+if(colorSnoopBtn){
+    colorSnoopBtn.addEventListener('click', ()=>{
+      snoopSetEnabled(!colorSnoopState.enabled);
+    });
+  }
+
+  stage.addEventListener('pointermove', snoopOnMove, true);
+  stage.addEventListener('pointerdown', (e)=>{
+    if(colorSnoopState.enabled){
+      snoopOnClick(e);
+    }
+  }, true);
+
+  snoopLoad();
 </script>
 </body>
 </html>
+  function setRectPaintProps(el, {stroke, strokeWidth, strokeNone, fill, fillNone}, label, commitHistory=true){
+    if(!el || el.type !== 'rect') return;
+    if(commitHistory) pushHistory(label);
+    if(stroke !== undefined) el.stroke = stroke;
+    if(strokeWidth !== undefined) el.strokeWidth = strokeWidth;
+    if(strokeNone !== undefined) el.strokeNone = !!strokeNone;
+    if(fill !== undefined) el.fill = fill;
+    if(fillNone !== undefined) el.fillNone = !!fillNone;
+    state.meta.updatedAt = nowIso();
+
+    const g = selectedId ? itemsG.querySelector(`.stage-item[data-id="${selectedId}"]`) : null;
+    if(g){
+      const r = g.querySelector('rect');
+      if(r){
+        r.setAttribute('stroke', el.strokeNone ? 'none' : (el.stroke || '#111111'));
+        r.setAttribute('stroke-width', el.strokeNone ? '0' : (el.strokeWidth ?? 2));
+        r.setAttribute('fill', el.fillNone ? 'none' : (el.fill || '#FFFFFF'));
+      }
+      g.setAttribute('transform', itemTransform(el));
+    }
+    renderSelectionOverlay();
+    try{ syncJsonPreview(); }catch(_){}
+  }
+
+  function normalizeMaybeHex(v, fallback){
+    const hx = normalizeHexInput(v);
+    return hx || fallback;
+  }
+
+  function applyPropRectPreview(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'rect') return;
+    const strokeHex = normalizeMaybeHex(propRectStrokeHex?.value, el.stroke || '#111111');
+    const fillHex = normalizeMaybeHex(propRectFillHex?.value, el.fill || '#FFFFFF');
+    const sw = Math.max(0.05, Math.min(50, Number(propRectStrokeWidth?.value || (el.strokeWidth ?? 2))));
+    setRectPaintProps(el, {
+      stroke: strokeHex,
+      strokeWidth: sw,
+      strokeNone: !!propRectStrokeNone?.checked,
+      fill: fillHex,
+      fillNone: !!propRectFillNone?.checked
+    }, "Rechthoek stijl", false);
+  }
+
+  function applyPropRectCommit(){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'rect') return;
+    const strokeHex = normalizeMaybeHex(propRectStrokeHex?.value, el.stroke || '#111111');
+    const fillHex = normalizeMaybeHex(propRectFillHex?.value, el.fill || '#FFFFFF');
+    const sw = Math.max(0.05, Math.min(50, Number(propRectStrokeWidth?.value || (el.strokeWidth ?? 2))));
+    setRectPaintProps(el, {
+      stroke: strokeHex,
+      strokeWidth: sw,
+      strokeNone: !!propRectStrokeNone?.checked,
+      fill: fillHex,
+      fillNone: !!propRectFillNone?.checked
+    }, "Rechthoek stijl", true);
+    renderAll();
+  }
+
+  if(propRectStrokeColor){
+    propRectStrokeColor.addEventListener('input', () => { if(propRectStrokeHex) propRectStrokeHex.value = propRectStrokeColor.value; applyPropRectPreview(); });
+    propRectStrokeColor.addEventListener('change', () => { if(propRectStrokeHex) propRectStrokeHex.value = propRectStrokeColor.value; applyPropRectCommit(); });
+  }
+  if(propRectStrokeHex){
+    propRectStrokeHex.addEventListener('input', applyPropRectPreview);
+    propRectStrokeHex.addEventListener('change', applyPropRectCommit);
+    propRectStrokeHex.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyPropRectCommit(); }});
+  }
+  if(propRectStrokeWidth){
+    propRectStrokeWidth.addEventListener('input', applyPropRectPreview);
+    propRectStrokeWidth.addEventListener('change', applyPropRectCommit);
+  }
+  if(propRectStrokeNone){
+    propRectStrokeNone.addEventListener('change', applyPropRectCommit);
+  }
+  if(propRectFillColor){
+    propRectFillColor.addEventListener('input', () => { if(propRectFillHex) propRectFillHex.value = propRectFillColor.value; applyPropRectPreview(); });
+    propRectFillColor.addEventListener('change', () => { if(propRectFillHex) propRectFillHex.value = propRectFillColor.value; applyPropRectCommit(); });
+  }
+  if(propRectFillHex){
+    propRectFillHex.addEventListener('input', applyPropRectPreview);
+    propRectFillHex.addEventListener('change', applyPropRectCommit);
+    propRectFillHex.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyPropRectCommit(); }});
+  }
+  if(propRectFillNone){
+    propRectFillNone.addEventListener('change', applyPropRectCommit);
+  }
+
+

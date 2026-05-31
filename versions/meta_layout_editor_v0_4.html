@@ -1,0 +1,1211 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>META Layout Editor (SVG + JSON) — v0.4</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1b33;
+      --panel2:#0c1730;
+      --text:#e7eefc;
+      --muted:#a9b7d0;
+      --line:rgba(231,238,252,.12);
+      --btn:#17315f;
+      --btn2:#1d3a70;
+      --accent:#7aa2ff;
+      --warn:#ffcf5a;
+      --danger:#ff6a6a;
+      --ok:#62d98b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:linear-gradient(180deg,#070b14, #0b1220 60%, #070b14);
+      height:100vh;
+      overflow:hidden;
+    }
+    header{
+      height:54px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 14px;
+      border-bottom:1px solid var(--line);
+      background:rgba(10,18,35,.75);
+      backdrop-filter: blur(10px);
+    }
+    header .left{ display:flex; align-items:center; gap:12px; }
+    header .badge{
+      font-weight:700;
+      letter-spacing:.4px;
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(122,162,255,.10);
+    }
+    header .hint{ color:var(--muted); font-size:12px; }
+    header .right{ display:flex; gap:8px; align-items:center; }
+    button{
+      cursor:pointer;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,var(--btn2), var(--btn));
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:10px;
+      font-weight:650;
+      font-size:13px;
+      line-height:1;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      justify-content:center;
+      user-select:none;
+    }
+    button:hover{ border-color:rgba(231,238,252,.22); }
+    button:active{ transform: translateY(1px); }
+    button.secondary{ background:rgba(15,27,51,.55); }
+    button.danger{ background:rgba(255,106,106,.12); border-color:rgba(255,106,106,.35); }
+    button.ok{ background:rgba(98,217,139,.12); border-color:rgba(98,217,139,.35); }
+    button:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+    main{
+      height:calc(100vh - 54px);
+      display:grid;
+      grid-template-columns: 320px 1fr 340px;
+      gap:12px;
+      padding:12px;
+    }
+    .panel{
+      background:rgba(15,27,51,.65);
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+    }
+    .panel h2{
+      margin:0;
+      padding:12px 12px;
+      border-bottom:1px solid var(--line);
+      font-size:13px;
+      letter-spacing:.4px;
+      text-transform:uppercase;
+      color:var(--muted);
+      background:rgba(7,11,20,.25);
+    }
+    .panel .content{
+      padding:12px;
+      overflow:auto;
+      min-height:0;
+    }
+    .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+    label{ font-size:12px; color:var(--muted); }
+    input[type="text"], input[type="number"], select, textarea{
+      width:100%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(7,11,20,.35);
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+    }
+    textarea{ min-height:90px; resize:vertical; }
+    .small{ font-size:12px; color:var(--muted); }
+    .list{ display:flex; flex-direction:column; gap:8px; }
+    .card{
+      border:1px solid var(--line);
+      background:rgba(12,23,48,.45);
+      border-radius:14px;
+      padding:10px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .card .meta{ display:flex; flex-direction:column; gap:2px; }
+    .card .meta b{ font-size:13px; }
+    .pill{
+      font-size:11px;
+      color:var(--muted);
+      border:1px solid var(--line);
+      padding:3px 8px;
+      border-radius:999px;
+      background:rgba(7,11,20,.25);
+      white-space:nowrap;
+    }
+    .canvasWrap{
+      background:rgba(15,27,51,.35);
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+      position:relative;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:0;
+    }
+    .canvasToolbar{
+      position:absolute;
+      top:10px; left:10px;
+      display:flex; gap:8px;
+      z-index:30;
+      padding:8px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(10,18,35,.70);
+      backdrop-filter: blur(10px);
+    }
+    #stage{
+      width:min(100%, 980px);
+      height:auto;
+      max-height:calc(100vh - 54px - 24px);
+      aspect-ratio: 210 / 297; /* A4 portrait */
+      background:#ffffff;
+      border-radius:12px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.45);
+      overflow:visible;
+      user-select:none;
+      touch-action:none;
+    }
+    .sel-box{ fill:none; stroke:var(--accent); stroke-width:1.5; stroke-dasharray:4 3; vector-effect: non-scaling-stroke; }
+    .handle{ fill:var(--accent); stroke:#ffffff; stroke-width:1; vector-effect: non-scaling-stroke; cursor:nwse-resize; }
+    .stage-item{ cursor:move; }
+    .stage-item[data-locked="1"]{ cursor:not-allowed; opacity:.85; }
+    .stage-item text{ pointer-events:none; }
+    .toast{
+      position:absolute;
+      bottom:12px; left:50%;
+      transform:translateX(-50%);
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(10,18,35,.78);
+      color:var(--text);
+      font-size:13px;
+      z-index:50;
+      opacity:0;
+      transition:opacity .18s ease;
+      pointer-events:none;
+      max-width:min(840px, calc(100% - 24px));
+      text-align:center;
+    }
+    .toast.show{ opacity:1; }
+    .mutedBox{
+      border:1px solid var(--line);
+      background:rgba(7,11,20,.25);
+      border-radius:14px;
+      padding:10px;
+    }
+    .split{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:8px;
+    }
+    hr{ border:0; border-top:1px solid var(--line); margin:14px 0; }
+  
+    
+
+    .canvasToolbar{
+      flex-direction:column;
+      align-items:stretch;
+      gap:8px;
+      padding:10px;
+      cursor:default;
+      user-select:none;
+    }
+    .tbDrag{
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.3px;
+      color:var(--muted);
+      padding:6px 8px;
+      border:1px dashed rgba(231,238,252,.22);
+      border-radius:12px;
+      background:rgba(7,11,20,.22);
+      cursor:move;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+</style>
+</head>
+<body>
+  <header>
+    <div class="left">
+      <div class="badge">META Layout Editor</div>
+      <div class="hint">SVG elementen + Tekst • Drag, resize, delete • Export/Import JSON</div>
+    </div>
+    <div class="right">
+      <button id="undoBtn" class="secondary" disabled>↩ Undo</button>
+      <button id="exportBtn" class="ok">⬇ Export JSON</button>
+      <button id="importBtn" class="secondary">⬆ Import JSON</button>
+      <input id="importFile" type="file" accept="application/json" hidden />
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>Assets (SVG)</h2>
+      <div class="content">
+        <div class="field">
+          <label>SVG bestand inladen</label>
+          <input id="svgFile" type="file" accept="image/svg+xml,.svg" />
+          <div class="small">Laad logo’s, iconen of stijlelementen als losse SVG’s. Deze worden als assets opgeslagen en zijn herbruikbaar.</div>
+        </div>
+
+        <div class="field">
+          <label>Assetnaam (optioneel)</label>
+          <input id="assetName" type="text" placeholder="bijv. Logo ICT-Horse" />
+        </div>
+
+        <div class="row">
+          <button id="addAssetToStageBtn" disabled>＋ Plaats geselecteerde asset</button>
+        </div>
+
+        <hr />
+
+        <div class="field">
+          <label>Assets</label>
+          <div id="assetList" class="list"></div>
+          <div id="noAssets" class="small">Nog geen assets geladen.</div>
+        </div>
+
+        <div class="mutedBox small">
+          <div style="margin-bottom:6px;"><b>Bediening</b></div>
+          <div>• Klik = selecteer • Sleep = verplaats • Handle = resize (Alt = vrije resize bij SVG) • Del = delete • Ctrl/⌘+Z = undo</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="canvasWrap">
+      <div class="canvasToolbar" id="canvasToolbar">
+        <div class="tbDrag" id="tbDrag">⋮⋮ Toolbox</div>
+        <button id="addTextBtn">T Voeg tekst</button>
+        <button id="deleteBtn" class="danger" disabled>🗑 Verwijder</button>
+        <button id="lockBtn" class="secondary" disabled>🔒 Lock</button>
+        <button id="bringFrontBtn" class="secondary" disabled>⬆ Naar voren</button>
+        <button id="sendBackBtn" class="secondary" disabled>⬇ Naar achteren</button>
+      </div>
+
+      <svg id="stage" viewBox="0 0 210 297" xmlns="http://www.w3.org/2000/svg" aria-label="Layout stage">
+        <rect x="0" y="0" width="210" height="297" fill="#ffffff"></rect>
+        <g id="items"></g>
+        <g id="overlayBox" pointer-events="none"></g>
+        <g id="overlayHandle" pointer-events="all"></g>
+      </svg>
+
+      <div id="toast" class="toast"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Eigenschappen</h2>
+      <div class="content">
+        <div id="noSelection" class="small mutedBox">Selecteer een element op de pagina om eigenschappen te bewerken.</div>
+
+        <div id="props" style="display:none;">
+          <div class="field">
+            <label>Element ID</label>
+            <input id="propId" type="text" disabled />
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>X (mm)</label>
+              <input id="propX" type="number" step="0.1" />
+            </div>
+            <div class="field">
+              <label>Y (mm)</label>
+              <input id="propY" type="number" step="0.1" />
+            </div>
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Breedte (mm)</label>
+              <input id="propW" type="number" step="0.1" />
+            </div>
+            <div class="field">
+              <label>Hoogte (mm)</label>
+              <input id="propH" type="number" step="0.1" />
+            </div>
+          </div>
+
+          <div class="field" id="textProps" style="display:none;">
+            <label>Tekst</label>
+            <textarea id="propText" placeholder="Typ je tekst..."></textarea>
+
+            <div class="split">
+              <div class="field" style="margin:0;">
+                <label>Lettertype</label>
+                <select id="propFont">
+                  <option value="Inter">Inter</option>
+                  <option value="Arial">Arial</option>
+                  <option value="Helvetica">Helvetica</option>
+                  <option value="Times New Roman">Times New Roman</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Courier New">Courier New</option>
+                  <option value="Verdana">Verdana</option>
+                </select>
+              </div>
+              <div class="field" style="margin:0;">
+                <label>Grootte</label>
+                <input id="propFontSize" type="number" step="0.5" />
+              </div>
+            </div>
+
+            <div class="split">
+              <div class="field" style="margin:0;">
+                <label>Kleur</label>
+                <input id="propFill" type="text" placeholder="#111111" />
+              </div>
+              <div class="field" style="margin:0;">
+                <label>Uitlijning</label>
+                <select id="propAlign">
+                  <option value="start">Links</option>
+                  <option value="middle">Midden</option>
+                  <option value="end">Rechts</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <button id="boldBtn" class="secondary">B</button>
+              <button id="italicBtn" class="secondary"><i>I</i></button>
+              <button id="underlineBtn" class="secondary"><u>U</u></button>
+            </div>
+          </div>
+        </div>
+
+        <hr />
+
+        <div class="field">
+          <label>JSON (preview)</label>
+          <textarea id="jsonPreview" readonly></textarea>
+          <div class="small">Live preview van de state (ingekort).</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+(() => {
+  const uid = () => 'el_' + Math.random().toString(16).slice(2, 10);
+  const nowIso = () => new Date().toISOString();
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+  const round = (n, d=2) => Math.round(n * Math.pow(10, d)) / Math.pow(10, d);
+
+  const toastEl = document.getElementById('toast');
+  let toastTimer = null;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1700);
+  }
+
+  function download(filename, text, mime='application/json'){
+    const blob = new Blob([text], {type: mime});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // -------- Manifest state (Option 4) --------
+  const state = {
+    meta: { schema: "META_LAYOUT_MANIFEST", version: "0.1", createdAt: nowIso(), updatedAt: nowIso() },
+    page: { unit: "mm", width: 210, height: 297, margin: 10 },
+    assets: {},     // id -> {id,name,svgText,viewBox:{w,h},createdAt}
+    elements: [],   // {id,type,assetId?,x,y,w,h,z,locked,...textProps}
+    zCounter: 0
+  };
+
+
+  // UI state (toolbox positie) — wordt mee geëxporteerd/imported
+  state.meta.ui = state.meta.ui || {};
+  state.meta.ui.toolbar = state.meta.ui.toolbar || { left: 10, top: 10 };
+
+
+  // Snapshot history (robust undo)
+  const history = [];
+  const undoBtn = document.getElementById('undoBtn');
+  function pushHistory(reason){
+    history.push({snap: JSON.stringify(state), reason, at: nowIso()});
+    undoBtn.disabled = history.length === 0;
+  }
+  function undo(){
+    if(history.length === 0) return;
+    const last = history.pop();
+    const restored = JSON.parse(last.snap);
+    Object.keys(state).forEach(k => delete state[k]);
+    Object.assign(state, restored);
+    undoBtn.disabled = history.length === 0;
+    selectedId = null;
+    selectedAssetId = null;
+    renderAll();
+    toast("Undo: " + last.reason);
+  }
+  undoBtn.addEventListener('click', undo);
+
+  // -------- DOM refs --------
+  const stage = document.getElementById('stage');
+  const itemsG = document.getElementById('items');
+  const overlayBoxG = document.getElementById('overlayBox');
+  const overlayHandleG = document.getElementById('overlayHandle');
+
+  const svgFile = document.getElementById('svgFile');
+  const assetName = document.getElementById('assetName');
+  const assetList = document.getElementById('assetList');
+  const noAssets = document.getElementById('noAssets');
+  const addAssetToStageBtn = document.getElementById('addAssetToStageBtn');
+
+  const addTextBtn = document.getElementById('addTextBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const lockBtn = document.getElementById('lockBtn');
+  const bringFrontBtn = document.getElementById('bringFrontBtn');
+  const sendBackBtn = document.getElementById('sendBackBtn');
+
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const importFile = document.getElementById('importFile');
+
+  const noSelection = document.getElementById('noSelection');
+  const propsBox = document.getElementById('props');
+  const textProps = document.getElementById('textProps');
+
+  const propId = document.getElementById('propId');
+  const propX = document.getElementById('propX');
+  const propY = document.getElementById('propY');
+  const propW = document.getElementById('propW');
+  const propH = document.getElementById('propH');
+
+  const propText = document.getElementById('propText');
+  const propFont = document.getElementById('propFont');
+  const propFontSize = document.getElementById('propFontSize');
+  const propFill = document.getElementById('propFill');
+  const propAlign = document.getElementById('propAlign');
+  const boldBtn = document.getElementById('boldBtn');
+  const italicBtn = document.getElementById('italicBtn');
+  const underlineBtn = document.getElementById('underlineBtn');
+
+  const jsonPreview = document.getElementById('jsonPreview');
+
+
+  // -------- Draggable toolbox --------
+  const canvasToolbar = document.getElementById('canvasToolbar');
+  const tbDrag = document.getElementById('tbDrag');
+  const canvasWrap = document.querySelector('.canvasWrap');
+
+  function applyToolbarPos(){
+    const p = state.meta.ui?.toolbar || {left:10, top:10};
+    canvasToolbar.style.left = p.left + 'px';
+    canvasToolbar.style.top = p.top + 'px';
+  }
+
+  function clampToolbar(left, top){
+    const wrapRect = canvasWrap.getBoundingClientRect();
+    const tbRect = canvasToolbar.getBoundingClientRect();
+    const maxL = Math.max(0, wrapRect.width - tbRect.width - 8);
+    const maxT = Math.max(0, wrapRect.height - tbRect.height - 8);
+    return { left: Math.max(0, Math.min(left, maxL)), top: Math.max(0, Math.min(top, maxT)) };
+  }
+
+  let tbDragging = false;
+  let tbStart = null;
+
+  tbDrag.addEventListener('pointerdown', (evt) => {
+    evt.preventDefault();
+    evt.stopPropagation();
+    tbDragging = true;
+    const wrapRect = canvasWrap.getBoundingClientRect();
+    const cur = state.meta.ui.toolbar;
+    tbStart = { 
+      pointerX: evt.clientX, pointerY: evt.clientY,
+      startLeft: cur.left, startTop: cur.top,
+      wrapLeft: wrapRect.left, wrapTop: wrapRect.top
+    };
+    canvasToolbar.setPointerCapture(evt.pointerId);
+  });
+
+  canvasToolbar.addEventListener('pointermove', (evt) => {
+    if(!tbDragging || !tbStart) return;
+    const dx = evt.clientX - tbStart.pointerX;
+    const dy = evt.clientY - tbStart.pointerY;
+    const next = clampToolbar(tbStart.startLeft + dx, tbStart.startTop + dy);
+    state.meta.ui.toolbar.left = Math.round(next.left);
+    state.meta.ui.toolbar.top = Math.round(next.top);
+    applyToolbarPos();
+  });
+
+  canvasToolbar.addEventListener('pointerup', (evt) => {
+    if(!tbDragging) return;
+    tbDragging = false;
+    tbStart = null;
+    // store as an undoable action
+    pushHistory("Toolbox verplaatst");
+    state.meta.updatedAt = nowIso();
+    canvasToolbar.releasePointerCapture(evt.pointerId);
+  });
+
+
+  // -------- Asset load --------
+  let selectedAssetId = null;
+
+  svgFile.addEventListener('change', async (e) => {
+    const f = e.target.files?.[0];
+    if(!f) return;
+    const text = await f.text();
+    const name = assetName.value?.trim() || f.name.replace(/\.svg$/i,'');
+    try{
+      const parsed = parseSvgAsset(text);
+      const id = 'asset_' + Math.random().toString(16).slice(2, 10);
+      pushHistory("Asset toegevoegd");
+      state.assets[id] = { id, name, svgText: parsed.cleanedSvgText, viewBox: parsed.viewBox, createdAt: nowIso() };
+      selectedAssetId = id;
+      state.meta.updatedAt = nowIso();
+      renderAll();
+      toast("Asset geladen: " + name);
+      addAssetToStageBtn.disabled = false;
+    }catch(err){
+      console.error(err);
+      toast("Kon SVG niet verwerken (check of het geldig is).");
+    }finally{
+      svgFile.value = "";
+      assetName.value = "";
+    }
+  });
+
+  function parseSvgAsset(svgText){
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgText, "image/svg+xml");
+    const svg = doc.querySelector('svg');
+    if(!svg) throw new Error("No <svg> root found");
+
+    doc.querySelectorAll('script').forEach(s => s.remove());
+
+    let vb = svg.getAttribute('viewBox');
+    let w = 0, h = 0;
+    if(vb){
+      const parts = vb.trim().split(/[\s,]+/).map(Number);
+      if(parts.length === 4){ w = parts[2]; h = parts[3]; }
+    }
+    if(!w || !h){
+      const sw = svg.getAttribute('width');
+      const sh = svg.getAttribute('height');
+      w = sw ? parseFloat(sw) : 100;
+      h = sh ? parseFloat(sh) : 100;
+    }
+    const cleanedSvgText = new XMLSerializer().serializeToString(doc.documentElement);
+    return { cleanedSvgText, viewBox:{ w, h } };
+  }
+
+  addAssetToStageBtn.addEventListener('click', () => {
+    if(!selectedAssetId) return;
+    addAssetElement(selectedAssetId);
+  });
+
+  function addAssetElement(assetId){
+    const asset = state.assets[assetId];
+    if(!asset) return;
+    pushHistory("Element geplaatst");
+    const id = uid();
+    const w = Math.min(60, state.page.width - state.page.margin*2);
+    const aspect = asset.viewBox.w / asset.viewBox.h || 1;
+    const h = w / aspect;
+    state.elements.push({
+      id, type:'svg', assetId,
+      x: state.page.margin,
+      y: state.page.margin,
+      w: round(w,2),
+      h: round(h,2),
+      z: ++state.zCounter,
+      locked: false
+    });
+    state.meta.updatedAt = nowIso();
+    selectedId = id;
+    renderAll();
+  }
+
+  // -------- Text tool --------
+  addTextBtn.addEventListener('click', () => {
+    pushHistory("Tekst toegevoegd");
+    const id = uid();
+    state.elements.push({
+      id, type:'text',
+      x: state.page.margin,
+      y: state.page.margin + 30,
+      w: 80, h: 12,
+      z: ++state.zCounter,
+      locked: false,
+      text: "Voorbeeldtekst",
+      fontFamily: "Inter",
+      fontSize: 10,
+      fontWeight: 600,
+      fontStyle: "normal",
+      textDecoration: "none",
+      fill: "#111111",
+      textAnchor: "start"
+    });
+    state.meta.updatedAt = nowIso();
+    selectedId = id;
+    renderAll();
+  });
+
+  // -------- Selection / interaction --------
+  let selectedId = null;
+  let dragMode = null; // move|resize
+  let dragStart = null;
+
+  function elementById(id){ return state.elements.find(e => e.id === id) || null; }
+  function sortElements(){ state.elements.sort((a,b) => (a.z||0)-(b.z||0)); }
+
+  function screenToStagePoint(evt){
+    const pt = stage.createSVGPoint();
+    pt.x = evt.clientX; pt.y = evt.clientY;
+    const inv = stage.getScreenCTM().inverse();
+    const p = pt.matrixTransform(inv);
+    return {x:p.x, y:p.y};
+  }
+
+  function renderAll(){
+    sortElements();
+    renderAssetList();
+
+    itemsG.innerHTML = "";
+    for(const el of state.elements){
+      const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+      g.setAttribute('class','stage-item');
+      g.dataset.id = el.id;
+      g.dataset.type = el.type;
+      g.dataset.locked = el.locked ? "1":"0";
+      g.setAttribute('transform', `translate(${el.x} ${el.y})`);
+      g.style.pointerEvents = el.locked ? 'none' : 'auto';
+
+      // Hitbox so selection/drag also works when clicking on empty/transparent areas
+      const hit = document.createElementNS("http://www.w3.org/2000/svg","rect");
+      hit.setAttribute('x', 0);
+      hit.setAttribute('y', 0);
+      hit.setAttribute('width', el.w);
+      hit.setAttribute('height', el.h);
+      hit.setAttribute('fill', 'transparent');
+      hit.setAttribute('pointer-events', 'all');
+      g.appendChild(hit);
+
+      if(el.type === 'svg'){
+        const asset = state.assets[el.assetId];
+        if(asset){
+          const contentG = createSvgContentGroup(asset.svgText);
+          const sx = el.w / asset.viewBox.w;
+          const sy = el.h / asset.viewBox.h;
+          contentG.setAttribute('transform', `scale(${sx} ${sy})`);
+          g.appendChild(contentG);
+        }
+      } else if(el.type === 'text'){
+        const t = document.createElementNS("http://www.w3.org/2000/svg","text");
+        t.textContent = el.text ?? "";
+        t.setAttribute('x', 0);
+        t.setAttribute('y', el.fontSize);
+        t.setAttribute('font-family', el.fontFamily || "Inter");
+        t.setAttribute('font-size', el.fontSize || 10);
+        t.setAttribute('font-weight', el.fontWeight || 400);
+        t.setAttribute('font-style', el.fontStyle || "normal");
+        t.setAttribute('text-decoration', el.textDecoration || "none");
+        t.setAttribute('fill', el.fill || "#111111");
+        t.setAttribute('text-anchor', el.textAnchor || "start");
+        if((el.textAnchor||"start")==="middle") t.setAttribute('x', el.w/2);
+        if((el.textAnchor||"start")==="end") t.setAttribute('x', el.w);
+        g.appendChild(t);
+      }
+
+      g.addEventListener('pointerdown', (evt) => {
+        if(evt.button !== 0) return;
+        evt.stopPropagation();
+        select(g.dataset.id);
+        const el = elementById(g.dataset.id);
+        if(!el || el.locked) return;
+        dragMode = 'move';
+        dragStart = { ...screenToStagePoint(evt), ox: el.x, oy: el.y };
+        stage.setPointerCapture(evt.pointerId);
+      });
+
+      itemsG.appendChild(g);
+    }
+
+    renderSelectionOverlay();
+    syncPropsUI();
+    syncJsonPreview();
+    refreshActionButtons();
+    applyToolbarPos();
+  }
+
+  function createSvgContentGroup(svgText){
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgText, "image/svg+xml");
+    const svg = doc.querySelector('svg');
+    const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+    if(!svg) return g;
+
+    const defs = svg.querySelector('defs');
+    if(defs){
+      const defsNode = document.createElementNS("http://www.w3.org/2000/svg","defs");
+      defsNode.innerHTML = defs.innerHTML;
+      g.appendChild(defsNode);
+    }
+    [...svg.childNodes].forEach(n => {
+      if(n.nodeType === 1 && n.tagName.toLowerCase() === 'defs') return;
+      if(n.nodeType === 1 && n.tagName.toLowerCase() === 'script') return;
+      g.appendChild(document.importNode(n, true));
+    });
+    return g;
+  }
+
+  function select(id){
+    selectedId = id;
+    renderSelectionOverlay();
+    syncPropsUI();
+    refreshActionButtons();
+    applyToolbarPos();
+  }
+
+  stage.addEventListener('pointerdown', (evt) => {
+    if(evt.button !== 0) return;
+    selectedId = null;
+    renderSelectionOverlay();
+    syncPropsUI();
+    refreshActionButtons();
+    applyToolbarPos();
+  });
+
+  stage.addEventListener('pointermove', (evt) => {
+    if(!dragMode || !selectedId) return;
+    const el = elementById(selectedId);
+    if(!el || el.locked) return;
+
+    const p = screenToStagePoint(evt);
+
+    if(dragMode === 'move'){
+      const dx = p.x - dragStart.x;
+      const dy = p.y - dragStart.y;
+      el.x = round(clamp(dragStart.ox + dx, 0, state.page.width - el.w), 2);
+      el.y = round(clamp(dragStart.oy + dy, 0, state.page.height - el.h), 2);
+      state.meta.updatedAt = nowIso();
+      const g = itemsG.querySelector(`.stage-item[data-id="${selectedId}"]`);
+      if(g) g.setAttribute('transform', `translate(${el.x} ${el.y})`);
+      renderSelectionOverlay();
+      syncPropsUI(false);
+      syncJsonPreview();
+    }
+
+    if(dragMode === 'resize'){
+      const { hx, hy, ow, oh, hx2, hy2 } = dragStart;
+      // delta from original handle position (bottom-right)
+      const dx = p.x - hx2;
+      const dy = p.y - hy2;
+      const nw0 = clamp(ow + dx, 2, state.page.width - el.x);
+      const nh0 = clamp(oh + dy, 2, state.page.height - el.y);
+
+      if(el.type === 'svg' && !evt.altKey){
+        const aspect = ow / oh || 1;
+        let w2 = nw0, h2 = nh0;
+        if(w2/h2 > aspect) w2 = h2 * aspect;
+        else h2 = w2 / aspect;
+        el.w = round(w2, 2);
+        el.h = round(h2, 2);
+      } else {
+        el.w = round(nw0, 2);
+        el.h = round(nh0, 2);
+      }
+
+      state.meta.updatedAt = nowIso();
+
+      const g = itemsG.querySelector(`.stage-item[data-id="${selectedId}"]`);
+      if(g && el.type === 'svg'){
+        const asset = state.assets[el.assetId];
+        const inner = g.firstElementChild;
+        if(asset && inner){
+          inner.setAttribute('transform', `scale(${el.w/asset.viewBox.w} ${el.h/asset.viewBox.h})`);
+        }
+      }
+      renderSelectionOverlay();
+      syncPropsUI(false);
+      syncJsonPreview();
+    }
+  });
+
+  stage.addEventListener('pointerup', (evt) => {
+    if(!dragMode) return;
+    if(dragMode === 'move') pushHistory("Verplaatst");
+    if(dragMode === 'resize') pushHistory("Geresized");
+    dragMode = null;
+    dragStart = null;
+    stage.releasePointerCapture(evt.pointerId);
+    renderAll();
+  });
+
+  function renderSelectionOverlay(){
+    overlayBoxG.innerHTML = "";
+    overlayHandleG.innerHTML = "";
+    if(!selectedId) return;
+    const el = elementById(selectedId);
+    if(!el) return;
+
+    // dashed selection box (non-interactive)
+    const box = document.createElementNS("http://www.w3.org/2000/svg","rect");
+    box.setAttribute('x', el.x);
+    box.setAttribute('y', el.y);
+    box.setAttribute('width', el.w);
+    box.setAttribute('height', el.h);
+    box.setAttribute('class','sel-box');
+    overlayBoxG.appendChild(box);
+
+    // interactive resize handle (bottom-right)
+    const handle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    handle.setAttribute('cx', el.x + el.w);
+    handle.setAttribute('cy', el.y + el.h);
+    handle.setAttribute('r', 2.4);
+    handle.setAttribute('class','handle');
+    handle.style.pointerEvents = 'all';
+    overlayHandleG.appendChild(handle);
+
+    handle.addEventListener('pointerdown', (evt) => {
+      evt.stopPropagation();
+      const el = elementById(selectedId);
+      if(!el || el.locked) return;
+      dragMode = 'resize';
+      dragStart = { ...screenToStagePoint(evt), hx: el.x, hy: el.y, ow: el.w, oh: el.h, hx2: el.x + el.w, hy2: el.y + el.h };
+      stage.setPointerCapture(evt.pointerId);
+    });
+  }
+
+  // -------- Toolbar actions --------
+  function refreshActionButtons(){
+    const el = selectedId ? elementById(selectedId) : null;
+    const has = !!el;
+    deleteBtn.disabled = !has;
+    lockBtn.disabled = !has;
+    bringFrontBtn.disabled = !has;
+    sendBackBtn.disabled = !has;
+    if(el) lockBtn.textContent = el.locked ? "🔓 Unlock" : "🔒 Lock";
+  }
+
+  deleteBtn.addEventListener('click', deleteSelected);
+  function deleteSelected(){
+    if(!selectedId) return;
+    const idx = state.elements.findIndex(e => e.id === selectedId);
+    if(idx < 0) return;
+    pushHistory("Verwijderd");
+    state.elements.splice(idx, 1);
+    state.meta.updatedAt = nowIso();
+    selectedId = null;
+    renderAll();
+  }
+
+  lockBtn.addEventListener('click', () => {
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el) return;
+    pushHistory(el.locked ? "Unlock" : "Lock");
+    el.locked = !el.locked;
+    state.meta.updatedAt = nowIso();
+    renderAll();
+  });
+
+  bringFrontBtn.addEventListener('click', () => {
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el) return;
+    pushHistory("Naar voren");
+    el.z = ++state.zCounter;
+    state.meta.updatedAt = nowIso();
+    renderAll();
+  });
+
+  sendBackBtn.addEventListener('click', () => {
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el) return;
+    pushHistory("Naar achteren");
+    el.z = 1;
+    sortElements();
+    let z = 0;
+    for(const e of state.elements) e.z = ++z;
+    state.zCounter = z;
+    state.meta.updatedAt = nowIso();
+    renderAll();
+  });
+
+  // -------- Properties binding --------
+  function syncPropsUI(setFields=true){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el){
+      noSelection.style.display = 'block';
+      propsBox.style.display = 'none';
+      return;
+    }
+    noSelection.style.display = 'none';
+    propsBox.style.display = 'block';
+
+    if(setFields){
+      propId.value = el.id;
+      propX.value = el.x;
+      propY.value = el.y;
+      propW.value = el.w;
+      propH.value = el.h;
+    }
+
+    if(el.type === 'text'){
+      textProps.style.display = 'block';
+      if(setFields){
+        propText.value = el.text || "";
+        propFont.value = el.fontFamily || "Inter";
+        propFontSize.value = el.fontSize || 10;
+        propFill.value = el.fill || "#111111";
+        propAlign.value = el.textAnchor || "start";
+      }
+    } else {
+      textProps.style.display = 'none';
+    }
+  }
+
+  const numFields = [propX, propY, propW, propH];
+  for(const f of numFields){
+    f.addEventListener('change', () => {
+      const el = selectedId ? elementById(selectedId) : null;
+      if(!el) return;
+      pushHistory("Eigenschap aangepast");
+      el.x = round(clamp(parseFloat(propX.value)||0, 0, state.page.width - el.w), 2);
+      el.y = round(clamp(parseFloat(propY.value)||0, 0, state.page.height - el.h), 2);
+      el.w = round(clamp(parseFloat(propW.value)||2, 2, state.page.width - el.x), 2);
+      el.h = round(clamp(parseFloat(propH.value)||2, 2, state.page.height - el.y), 2);
+      state.meta.updatedAt = nowIso();
+      renderAll();
+    });
+  }
+
+  let lastTextEditAt = 0;
+  function applyTextProps(push=true){
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'text') return;
+
+    const t = Date.now();
+    const shouldPush = push && (t - lastTextEditAt > 600);
+    if(shouldPush){
+      pushHistory("Tekst aangepast");
+      lastTextEditAt = t;
+    }
+
+    el.text = propText.value;
+    el.fontFamily = propFont.value;
+    el.fontSize = round(parseFloat(propFontSize.value)||10, 2);
+    el.fill = propFill.value || "#111111";
+    el.textAnchor = propAlign.value;
+
+    el.w = round(Math.max(el.w, 20),2);
+    el.h = round(Math.max(el.h, el.fontSize + 2),2);
+    state.meta.updatedAt = nowIso();
+
+    const g = itemsG.querySelector(`.stage-item[data-id="${selectedId}"]`);
+    if(g){
+      const tnode = g.querySelector('text');
+      if(tnode){
+        tnode.textContent = el.text;
+        tnode.setAttribute('font-family', el.fontFamily);
+        tnode.setAttribute('font-size', el.fontSize);
+        tnode.setAttribute('fill', el.fill);
+        tnode.setAttribute('text-anchor', el.textAnchor);
+        tnode.setAttribute('y', el.fontSize);
+        if(el.textAnchor==="middle") tnode.setAttribute('x', el.w/2);
+        else if(el.textAnchor==="end") tnode.setAttribute('x', el.w);
+        else tnode.setAttribute('x', 0);
+      }
+    }
+    renderSelectionOverlay();
+    syncJsonPreview();
+  }
+
+  for(const f of [propText, propFont, propFontSize, propFill, propAlign]){
+    f.addEventListener('input', () => applyTextProps(false));
+    f.addEventListener('change', () => applyTextProps(true));
+  }
+
+  boldBtn.addEventListener('click', () => {
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'text') return;
+    pushHistory("Tekst opmaak");
+    el.fontWeight = (el.fontWeight >= 600) ? 400 : 700;
+    state.meta.updatedAt = nowIso();
+    renderAll();
+  });
+  italicBtn.addEventListener('click', () => {
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'text') return;
+    pushHistory("Tekst opmaak");
+    el.fontStyle = (el.fontStyle === 'italic') ? 'normal' : 'italic';
+    state.meta.updatedAt = nowIso();
+    renderAll();
+  });
+  underlineBtn.addEventListener('click', () => {
+    const el = selectedId ? elementById(selectedId) : null;
+    if(!el || el.type !== 'text') return;
+    pushHistory("Tekst opmaak");
+    el.textDecoration = (el.textDecoration === 'underline') ? 'none' : 'underline';
+    state.meta.updatedAt = nowIso();
+    renderAll();
+  });
+
+  // -------- Keyboard shortcuts --------
+  window.addEventListener('keydown', (e) => {
+    const isMac = navigator.platform.toLowerCase().includes('mac');
+    const mod = isMac ? e.metaKey : e.ctrlKey;
+    if(mod && e.key.toLowerCase() === 'z'){
+      e.preventDefault();
+      undo();
+      return;
+    }
+    if(e.key === 'Delete' || e.key === 'Backspace'){
+      const tag = (document.activeElement?.tagName || '').toLowerCase();
+      if(tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      deleteSelected();
+    }
+  });
+
+  // -------- Asset list UI --------
+  function renderAssetList(){
+    const ids = Object.keys(state.assets);
+    assetList.innerHTML = "";
+    noAssets.style.display = ids.length ? 'none' : 'block';
+
+    for(const id of ids){
+      const a = state.assets[id];
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.borderColor = (id === selectedAssetId) ? 'rgba(122,162,255,.45)' : 'var(--line)';
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      const b = document.createElement('b');
+      b.textContent = a.name;
+      const s = document.createElement('div');
+      s.className = 'small';
+      s.textContent = `viewBox: ${round(a.viewBox.w,2)} × ${round(a.viewBox.h,2)}`;
+      meta.appendChild(b); meta.appendChild(s);
+
+      const right = document.createElement('div');
+      right.className = 'row';
+      right.style.justifyContent = 'flex-end';
+
+      const pill = document.createElement('span');
+      pill.className = 'pill';
+      pill.textContent = id.slice(-6);
+
+      const selBtn = document.createElement('button');
+      selBtn.className = 'secondary';
+      selBtn.textContent = 'Select';
+      selBtn.addEventListener('click', () => {
+        selectedAssetId = id;
+        addAssetToStageBtn.disabled = false;
+        renderAll();
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'danger';
+      delBtn.textContent = 'Verwijder';
+      delBtn.addEventListener('click', () => {
+        const used = state.elements.some(e => e.type === 'svg' && e.assetId === id);
+        if(used){ toast("Asset in gebruik: verwijder eerst de geplaatste elementen."); return; }
+        pushHistory("Asset verwijderd");
+        delete state.assets[id];
+        if(selectedAssetId === id) selectedAssetId = null;
+        state.meta.updatedAt = nowIso();
+        renderAll();
+      });
+
+      right.appendChild(pill);
+      right.appendChild(selBtn);
+      right.appendChild(delBtn);
+
+      card.addEventListener('click', (evt) => {
+        // avoid double-trigger when clicking buttons
+        if(evt.target && evt.target.tagName && evt.target.tagName.toLowerCase()==='button') return;
+        selectedAssetId = id;
+        addAssetToStageBtn.disabled = false;
+        renderAll();
+      });
+
+      card.appendChild(meta);
+      card.appendChild(right);
+      assetList.appendChild(card);
+    }
+  }
+
+  // -------- Export / Import --------
+  exportBtn.addEventListener('click', () => {
+    download(`layout_manifest_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(state, null, 2));
+    toast("JSON geëxporteerd.");
+  });
+
+  importBtn.addEventListener('click', () => importFile.click());
+  importFile.addEventListener('change', async (e) => {
+    const f = e.target.files?.[0];
+    if(!f) return;
+    try{
+      const incoming = JSON.parse(await f.text());
+      if(incoming?.meta?.schema !== "META_LAYOUT_MANIFEST"){
+        toast("Onbekend schema. Verwacht META_LAYOUT_MANIFEST.");
+        return;
+      }
+      pushHistory("Import JSON");
+      Object.keys(state).forEach(k => delete state[k]);
+      Object.assign(state, incoming);
+      state.assets = state.assets || {};
+      state.elements = state.elements || [];
+      state.page = state.page || {unit:"mm",width:210,height:297,margin:10};
+      state.meta = state.meta || {schema:"META_LAYOUT_MANIFEST",version:"0.1",createdAt:nowIso(),updatedAt:nowIso()};
+      state.meta.ui = state.meta.ui || {}; 
+      state.meta.ui.toolbar = state.meta.ui.toolbar || { left: 10, top: 10 };
+      state.zCounter = Math.max(0, ...state.elements.map(e => e.z||0));
+      selectedId = null; selectedAssetId = null;
+      renderAll();
+      toast("JSON geïmporteerd.");
+    }catch(err){
+      console.error(err);
+      toast("Import mislukt (ongeldige JSON).");
+    }finally{
+      importFile.value = "";
+    }
+  });
+
+  // -------- JSON preview --------
+  function syncJsonPreview(){
+    const compact = {
+      meta: state.meta,
+      page: state.page,
+      assets: Object.values(state.assets).map(a => ({id:a.id,name:a.name, viewBox:a.viewBox})),
+      elements: state.elements.map(e => ({
+        id:e.id, type:e.type, assetId:e.assetId,
+        x:e.x,y:e.y,w:e.w,h:e.h,z:e.z,locked:!!e.locked,
+        ...(e.type==='text' ? {text:e.text,fontFamily:e.fontFamily,fontSize:e.fontSize,fontWeight:e.fontWeight,fontStyle:e.fontStyle,textDecoration:e.textDecoration,fill:e.fill,textAnchor:e.textAnchor} : {})
+      }))
+    };
+    let s = JSON.stringify(compact, null, 2);
+    if(s.length > 6000) s = s.slice(0, 6000) + "\n…(ingekort)…";
+    jsonPreview.value = s;
+  }
+
+  // Init
+  renderAll();
+  toast("Laad een SVG asset in (links) en plaats 'm op de pagina.");
+})();
+</script>
+</body>
+</html>

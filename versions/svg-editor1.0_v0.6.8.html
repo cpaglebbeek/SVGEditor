@@ -3,8 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="robots" content="noindex,nofollow" />
-  <title>META Layout Editor (SVG + JSON) — v1.5.5 PROD</title>
+  <title>META Layout Editor (SVG + JSON) — v0.6.8 (Phase H: export naar SVG)</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -184,9 +183,7 @@ main{
       user-select:none;
       touch-action:none;
     }
-    .sel-box{ fill:none; stroke:var(--accent); stroke-width:1.5; stroke-dasharray:4 3; vector-effect: non-scaling-stroke; 
-      pointer-events:none;
-    }
+    .sel-box{ fill:none; stroke:var(--accent); stroke-width:1.5; stroke-dasharray:4 3; vector-effect: non-scaling-stroke; }
     .handle{ fill:var(--accent); stroke:#ffffff; stroke-width:1; vector-effect: non-scaling-stroke; cursor:nwse-resize; }
     .stage-item{ cursor:move; }
     .stage-item[data-locked="1"]{ cursor:not-allowed; opacity:.85; }
@@ -285,142 +282,6 @@ main{
       background:#000;
       padding:0;
     }
-
-    .modeRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}
-    .modeLbl{font-size:12px;color:var(--muted)}
-    .seg{display:flex;gap:6px}
-    .segBtn{appearance:none;border:1px solid var(--line);background:var(--btn);color:var(--text);padding:6px 10px;border-radius:999px;font-size:12px;cursor:pointer;user-select:none}
-    .segBtn:hover{background:var(--btn2)}
-    .segBtn.active{border-color:rgba(122,162,255,.7);box-shadow:0 0 0 2px rgba(122,162,255,.15) inset}
-    .stageCanvas{cursor:grab}
-    .stageCanvas.dragging{cursor:grabbing}
-
-  
-    /* Toolbox-only warm soft-yellow theme (scoped) */
-    .canvasToolbar{
-      background: rgba(52, 46, 18, .78);
-      border-color: rgba(255, 220, 120, .28);
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
-    }
-    .canvasToolbar, .canvasToolbar *{
-      color: rgba(255, 245, 220, .92);
-    }
-    .canvasToolbar .tbDrag{ color: rgba(255, 245, 220, .95); }
-    .canvasToolbar .modeLbl{ color: rgba(255, 235, 190, .85); }
-    .canvasToolbar .segBtn,
-    .canvasToolbar button.btn,
-    .canvasToolbar button.toolBtn,
-    .canvasToolbar button{
-      background: rgba(255, 235, 170, .10);
-      border-color: rgba(255, 220, 120, .24);
-    }
-    .canvasToolbar .segBtn:hover,
-    .canvasToolbar button.btn:hover,
-    .canvasToolbar button.toolBtn:hover,
-    .canvasToolbar button:hover{
-      background: rgba(255, 235, 170, .16);
-      border-color: rgba(255, 220, 120, .32);
-    }
-    .canvasToolbar .segBtn.active{
-      border-color: rgba(255, 220, 120, .62);
-      box-shadow: 0 0 0 2px rgba(255, 220, 120, .16) inset;
-    }
-    .canvasToolbar input,
-    .canvasToolbar select,
-    .canvasToolbar textarea{
-      background: rgba(255, 235, 170, .08);
-      border-color: rgba(255, 220, 120, .22);
-      color: rgba(255, 245, 220, .95);
-    }
-    .canvasToolbar input::placeholder,
-    .canvasToolbar textarea::placeholder{
-      color: rgba(255, 235, 190, .60);
-    }
-
-  
-    /* Toolbox collapse/mini (scoped to .canvasToolbar only) */
-    .canvasToolbar .tbDrag{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .canvasToolbar .tbTitle{display:inline-flex;align-items:center;gap:8px}
-    .canvasToolbar .tbIconBtn{
-      appearance:none;
-      border:1px solid rgba(255, 220, 120, .24);
-      background: rgba(255, 235, 170, .10);
-      color: inherit;
-      border-radius:10px;
-      padding:4px 8px;
-      font-size:12px;
-      cursor:pointer;
-    }
-    .canvasToolbar .tbIconBtn:hover{background:rgba(255,235,170,.16);border-color:rgba(255,220,120,.32)}
-    .canvasToolbar.collapsed{width:auto;min-width:0;max-width:none;padding:10px}
-    .canvasToolbar.collapsed > :not(#tbMini):not(.tbDrag){display:none !important}
-    .canvasToolbar .tbMini{display:none;align-items:center;justify-content:center}
-    .canvasToolbar.collapsed .tbMini{display:flex}
-    .canvasToolbar .tbMiniBtn{
-      appearance:none;
-      border:1px solid rgba(255, 220, 120, .24);
-      background: rgba(255, 235, 170, .10);
-      color: inherit;
-      border-radius:999px;
-      padding:8px 10px;
-      font-size:14px;
-      cursor:pointer;
-    }
-    .canvasToolbar .tbMiniBtn:hover{background:rgba(255,235,170,.16);border-color:rgba(255,220,120,.32)}
-
-  
-    /* Toolbox extra controls */
-    .canvasToolbar .toolGroup{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      padding:6px 8px;
-      border:1px solid rgba(255, 220, 120, .18);
-      border-radius:10px;
-      background: rgba(255, 235, 170, .06);
-    }
-    .canvasToolbar .toolGroup .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .canvasToolbar .toolGroup .lbl{font-size:12px;opacity:.85}
-    .canvasToolbar .toolGroup input[type="text"],
-    .canvasToolbar .toolGroup input[type="number"]{
-      width:130px;
-      padding:6px 8px;
-      border-radius:10px;
-      border:1px solid rgba(255, 220, 120, .20);
-      background: rgba(255, 235, 170, .08);
-      color: inherit;
-    }
-    .canvasToolbar .toolGroup input[type="color"]{
-      width:48px;
-      height:28px;
-      padding:0;
-      border-radius:10px;
-      border:1px solid rgba(255, 220, 120, .20);
-      background: rgba(255, 235, 170, .08);
-    }
-    #rectToolBtn.active{
-      border-color: rgba(255, 220, 120, .70) !important;
-      box-shadow: 0 0 0 2px rgba(255, 220, 120, .16) inset;
-    }
-    #lineToolBtn.active{
-      border-color: rgba(255, 220, 120, .70) !important;
-      box-shadow: 0 0 0 2px rgba(255, 220, 120, .16) inset;
-    }
-    .stageLineTool{cursor:crosshair}
-    .stageRectTool{cursor:crosshair}
-
-  
-  /* Line properties */
-  #propStrokeHex{ text-transform:uppercase; }
-  #propStrokeHex.invalid{
-    outline: 2px solid rgba(255, 120, 120, .35);
-    border-color: rgba(255, 120, 120, .35);
-  }
-
-
-  .snoopSwatch{width:22px; height:22px; border-radius:6px; border:1px solid rgba(0,0,0,.18); background:#fff; display:inline-block;}
-  .snoopToggle{display:flex; align-items:center; gap:6px; padding:4px 6px; border:1px solid rgba(0,0,0,.12); border-radius:8px; background:rgba(255,255,255,.35);}
-  .snoopToggle input{transform:translateY(1px);}
 </style>
 </head>
 <body>
@@ -480,88 +341,11 @@ main{
 
     <section class="canvasWrap">
       <div class="canvasToolbar" id="canvasToolbar">
-
-        <div id="tbMini" class="tbMini" title="Expand toolbox">
-          <button id="tbExpandBtn" class="tbMiniBtn" type="button">⟫</button>
-        </div>
-
-        <div class="tbDrag" id="tbDrag"><span class="tbTitle">⋮⋮ Toolbox</span><button id="tbCollapseBtn" class="tbIconBtn" type="button" title="Collapse/expand toolbox">⟪</button></div>
-        <div class="modeRow" title="Wissel tussen canvas-pan en objectbewerking">
-          <span class="modeLbl">Mode</span>
-          <div class="seg" role="group" aria-label="Interaction mode">
-            <button id="modeCanvasBtn" class="segBtn" type="button">Canvas</button>
-            <button id="modeObjectBtn" class="segBtn active" type="button">Object</button>
-          </div>
-        </div>
-
+        <div class="tbDrag" id="tbDrag">⋮⋮ Toolbox</div>
         <button id="magnifierBtn" class="secondary">🔍 Magnifier</button>
         <button id="resetViewBtn" class="secondary">⟲ Reset view</button>
         <div class="small" id="viewHint" style="text-align:center;opacity:.85;">Wheel = zoom • Space/middle = pan</div>
 <button id="addTextBtn">T Voeg tekst</button>
-
-        <button id="lineToolBtn" class="secondary" title="Teken een rechte lijn">／ Lijn</button>
-
-        
-          
-  <button class="secondary" id="bmpSnoopBtn" title="Pipet: lees kleur uit zichtbare pixels (bitmap)">🧪 Color snoop</button>
-  <div class="toolGroup" id="bmpSnoopBox" style="display:none;" title="Bitmap color snoop">
-    <div class="row" style="gap:8px; align-items:center;">
-      <span class="lbl" style="min-width:64px;">Kleur</span>
-      <span class="snoopSwatch" id="bmpSnoopSwatch" title="Hover om te meten, klik om vast te zetten"></span>
-      <span class="mono small" id="bmpSnoopHex">—</span>
-      <label class="snoopToggle small" title="Als aan: randkleur heeft voorrang wanneer je op de rand zit">
-        <input type="checkbox" id="bmpSnoopStrokeFirst" checked> stroke-first
-      </label>
-    </div>
-    
-<div class="toolGroup" id="lineToolControls" title="Instellingen voor lijn">
-          <div class="row">
-            <label class="lbl" for="strokeColor">Kleur</label>
-            <input id="strokeColor" type="color" value="#111111" />
-          </div>
-          <div class="row">
-            <label class="lbl" for="strokeWidth">Dikte</label>
-            <input id="strokeWidth" type="number" min="0.05" max="50" step="0.05" value="2" />
-          </div>
-        </div>
-
-        
-        <button id="rectToolBtn" class="secondary" title="Teken een rechthoek">▭ Rechthoek</button>
-
-        <div class="toolGroup" id="rectToolControls" title="Instellingen voor rechthoek" style="display:none;">
-          <div class="row">
-            <label class="lbl" for="rectStrokeColor">Lijnkleur</label>
-            <input id="rectStrokeColor" type="color" value="#111111" />
-            <input id="rectStrokeHexTool" type="text" value="#111111" style="width:92px;" />
-          </div>
-<div class="small" style="opacity:.85;">Tip: zet zoom hoger voor preciezere pipet. Klik om vast te zetten.</div>
-  </div>
-<div class="row">
-            <label class="lbl" for="rectStrokeWidth">Lijndikte</label>
-            <input id="rectStrokeWidth" type="number" min="0.05" max="50" step="0.05" value="2" />
-          </div>
-          <div class="row">
-            <label class="lbl" for="rectFillColor">Vulling</label>
-            <input id="rectFillColor" type="color" value="#FFFFFF" />
-            <input id="rectFillHexTool" type="text" value="#FFFFFF" style="width:92px;" />
-          </div>
-          <div class="row">
-            <label class="lbl" for="rectStrokeNone">Geen rand</label>
-            <input id="rectStrokeNone" type="checkbox" />
-          </div>
-          <div class="row">
-            <label class="lbl" for="rectFillNone">Geen opvulling</label>
-            <input id="rectFillNone" type="checkbox" />
-          </div>
-        </div>
-
-<div class="toolGroup" id="quickNameGroup" title="Naam van geselecteerd object">
-          <div class="row">
-            <label class="lbl" for="quickName">Naam</label>
-            <input id="quickName" type="text" placeholder="(selecteer object)" />
-          </div>
-        </div>
-
         <button id="deleteBtn" class="danger" disabled>🗑 Verwijder</button>
         <button id="lockBtn" class="secondary" disabled>🔒 Lock</button>
         <button id="bringFrontBtn" class="secondary" disabled>⬆ Naar voren</button>
@@ -611,7 +395,6 @@ main{
             <input id="propName" type="text" />
           <div class="row" style="margin-top:8px;">
             <button id="exportElementBtn" class="secondary">⬇ Export element</button>
-            <button id="exportElementSvgBtn" class="secondary">⬇ Export SVG</button>
             <button id="importElementBtn" class="secondary">⬆ Import element</button>
             <input id="importElementFile" type="file" accept="application/json" hidden />
           </div>
@@ -695,99 +478,6 @@ main{
         </div>
 
         
-        <!-- Line properties (parity with other elements) -->
-        <div class="field" id="lineProps" style="display:none;">
-          <label>Lijn</label>
-
-          <div class="split">
-            <div class="field" style="margin:0;">
-              <label>Stroke kleur</label>
-              <input id="propStrokeColor" type="color" value="#111111" />
-            </div>
-            <div class="field" style="margin:0;">
-              <label>Stroke hex</label>
-              <input id="propStrokeHex" type="text" placeholder="#111111" spellcheck="false" />
-            </div>
-          </div>
-
-          <div class="split">
-            <div class="field" style="margin:0;">
-              <label>Stroke dikte</label>
-              <input id="propStrokeWidth" type="number" min="0.05" max="50" step="0.05" value="2" />
-            </div>
-            <div class="field" style="margin:0;">
-              <label style="opacity:.7;">&nbsp;</label>
-              <div class="small">Min 0.05 — max 50</div>
-            </div>
-          
-          <div class="split" style="margin-top:8px;">
-            <div class="field" style="margin:0;">
-              <label>Rotatie (°)</label>
-              <input id="propRotation" type="number" min="-360" max="360" step="0.5" value="0" />
-            </div>
-            <div class="field" style="margin:0;">
-              <label style="opacity:.7;">&nbsp;</label>
-              <div style="display:flex; gap:6px; justify-content:flex-end;">
-                <button id="rotLeftBtn" class="btn" style="padding:6px 8px;">↺ -15°</button>
-                <button id="rotRightBtn" class="btn" style="padding:6px 8px;">↻ +15°</button>
-              </div>
-            </div>
-          </div>
-
-</div>
-        </div>
-
-
-        <!-- Rect properties -->
-        <div id="rectProps" class="card" style="display:none;">
-          <div class="cardTitle">Rechthoek</div>
-
-          <div class="split">
-            <div class="field" style="margin:0;">
-              <label>Lijnkleur</label>
-              <input id="propRectStrokeColor" type="color" value="#111111" />
-            </div>
-            <div class="field" style="margin:0;">
-              <label>Hex</label>
-              <input id="propRectStrokeHex" type="text" value="#111111" />
-            </div>
-          </div>
-
-          <div class="split" style="margin-top:8px;">
-            <div class="field" style="margin:0;">
-              <label>Lijndikte</label>
-              <input id="propRectStrokeWidth" type="number" min="0.05" max="50" step="0.05" value="2" />
-            </div>
-            <div class="field" style="margin:0;">
-              <label>Geen lijn</label>
-              <input id="propRectStrokeNone" type="checkbox" />
-            </div>
-          </div>
-
-          <div class="split" style="margin-top:8px;">
-            <div class="field" style="margin:0;">
-              <label>Vulling</label>
-              <input id="propRectFillColor" type="color" value="#FFFFFF" />
-            </div>
-            <div class="field" style="margin:0;">
-              <label>Hex</label>
-              <input id="propRectFillHex" type="text" value="#FFFFFF" />
-            </div>
-          </div>
-
-          <div class="split" style="margin-top:8px;">
-            <div class="field" style="margin:0;">
-              <label>Geen vulling</label>
-              <input id="propRectFillNone" type="checkbox" />
-            </div>
-            <div class="field" style="margin:0;">
-              <label style="opacity:.7;">&nbsp;</label>
-              <div class="small" style="opacity:.75; text-align:right;">(stroke/fill)</div>
-            </div>
-          </div>
-        </div>
-
-
         <div class="field">
           <label>Canvas achtergrond</label>
           <select id="bgMode">
@@ -829,9 +519,6 @@ main{
         <div class="field">
           <label>JSON (preview)</label>
           <textarea id="jsonPreview" readonly></textarea>
-          <div class="row" style="justify-content:flex-start; gap:8px; margin-top:6px;">
-            <button id="copySelectedJsonBtn" class="secondary" type="button">Kopieer geselecteerd element (JSON)</button>
-          </div>
           <div class="small">Live preview van de state (ingekort).</div>
         </div>
       </div>
@@ -844,44 +531,6 @@ main{
   const nowIso = () => new Date().toISOString();
   const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
   const round = (n, d=2) => Math.round(n * Math.pow(10, d)) / Math.pow(10, d);
-
-  const propsPanel = document.getElementById('propsPanel');
-
-  // Properties panel edit-lock: do not overwrite inputs while user is typing
-  if(propsPanel){
-    propsPanel.addEventListener('focusin', () => { propsEditing = true; }, true);
-    propsPanel.addEventListener('focusout', (e) => {
-      // only unlock if focus leaves the panel entirely
-      const next = e.relatedTarget;
-      if(!next || !propsPanel.contains(next)){
-        // commit-on-leave: ensure edits land in state before any sync overwrites UI
-        commitSelectedProps();
-        propsEditing = false;
-        syncPropsUI(true);
-      }
-}, true);
-    // ESC cancels typing lock and re-syncs current values
-    propsPanel.addEventListener('keydown', (e) => {
-      if(e.key === 'Enter'){
-        const t = e.target;
-        const tag = (t && t.tagName) ? t.tagName.toLowerCase() : '';
-        const type = (t && t.type) ? String(t.type).toLowerCase() : '';
-        // commit on Enter for inputs (avoid textarea/buttons)
-        if(tag === 'input' && type !== 'button' && type !== 'submit' && type !== 'checkbox'){
-          e.preventDefault();
-          commitSelectedProps();
-          propsEditing = false;
-          syncPropsUI(true);
-          t.blur();
-          return;
-        }
-      }
-      if(e.key === 'Escape'){
-        propsEditing = false;
-        syncPropsUI(true);
-      }
-    }, true);
-  }
 
   const toastEl = document.getElementById('toast');
   let toastTimer = null;
@@ -948,41 +597,10 @@ main{
   const itemsG = document.getElementById('items');
   const overlayBoxG = document.getElementById('overlayBox');
   const overlayHandleG = document.getElementById('overlayHandle');
-  // Overlay should never intercept pointer events (selection rect is visual only)
-  overlayBoxG.setAttribute('pointer-events','none');
 
   // Viewport tools
   const magnifierBtn = document.getElementById('magnifierBtn');
   const resetViewBtn = document.getElementById('resetViewBtn');
-
-  const modeCanvasBtn = document.getElementById('modeCanvasBtn');
-  const modeObjectBtn = document.getElementById('modeObjectBtn');
-
-  // Interaction mode:
-  // - 'canvas': objecten niet selecteerbaar/verplaatsbaar; linkermuisknop = pan
-  // - 'object': objecten selecteerbaar/verplaatsbaar; pan via space/middle
-  let interactionMode = 'object';
-
-  function setInteractionMode(mode){
-    interactionMode = mode === 'canvas' ? 'canvas' : 'object';
-    modeCanvasBtn.classList.toggle('active', interactionMode === 'canvas');
-    modeObjectBtn.classList.toggle('active', interactionMode === 'object');
-    // Visual hint/cursor
-    stage.classList.toggle('stageCanvas', interactionMode === 'canvas');
-    const hint = (interactionMode === 'canvas')
-      ? 'Canvas mode: drag = pan • Wheel = zoom'
-      : 'Object mode: select/drag object • Wheel = zoom • Space/middle = pan';
-    const vh = document.getElementById('viewHint');
-    if(vh) vh.textContent = hint;
-    // In canvas mode, clear selection overlays so we don’t imply editability
-    if(interactionMode === 'canvas'){
-      deselect();
-    }
-    state.meta.updatedAt = nowIso();
-  }
-
-  modeCanvasBtn.addEventListener('click', () => setInteractionMode('canvas'));
-  modeObjectBtn.addEventListener('click', () => setInteractionMode('object'));
   const magG = document.getElementById('magG');
   const magUse = document.getElementById('magUse');
   const magClipCircle = document.getElementById('magClipCircle');
@@ -1000,97 +618,8 @@ main{
   const bringFrontBtn = document.getElementById('bringFrontBtn');
   const sendBackBtn = document.getElementById('sendBackBtn');
 
-  const lineToolBtn = document.getElementById('lineToolBtn');
-  const strokeColor = document.getElementById('strokeColor');
-  const rectToolBtn = document.getElementById('rectToolBtn');
-  const rectToolControls = document.getElementById('rectToolControls');
-  const rectStrokeColor = document.getElementById('rectStrokeColor');
-const rectStrokeWidth = document.getElementById('rectStrokeWidth');
-  const rectFillColor = document.getElementById('rectFillColor');
-const rectStrokeNone = document.getElementById('rectStrokeNone');
-  const rectFillNone = document.getElementById('rectFillNone');
-  const rectStrokeHexTool = document.getElementById('rectStrokeHexTool');
-  const rectFillHexTool = document.getElementById('rectFillHexTool');
-
-  
-
-  // Rect toolbox hex inputs (stroke/fill)
-  function setInputValidity(inp, ok){
-    if(!inp) return;
-    inp.classList.toggle('invalid', !ok);
-  }
-
-  function syncRectHexFromPickers(){
-    const sh = normalizeHexInput(rectStrokeColor?.value || "#111111") || "#111111";
-    const fh = normalizeHexInput(rectFillColor?.value || "#FFFFFF") || "#FFFFFF";
-    if(rectStrokeHexTool) rectStrokeHexTool.value = sh;
-    if(rectFillHexTool) rectFillHexTool.value = fh;
-  }
-
-  function applyRectToolboxStyleToSelected(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el || el.type !== 'rect') return;
-    if(typeof setRectPaintProps === 'function'){
-      const strokeHex = normalizeHexInput(rectStrokeColor?.value || "#111111") || "#111111";
-      const fillHex = normalizeHexInput(rectFillColor?.value || "#FFFFFF") || "#FFFFFF";
-      const sw = Math.max(0.05, Math.min(50, Number(rectStrokeWidth?.value || 2)));
-      const strokeNone = !!rectStrokeNone?.checked;
-      const fillNone = !!rectFillNone?.checked;
-      const safeFillNone = fillNone && !strokeNone;
-      setRectPaintProps(el, { stroke: strokeHex, strokeWidth: sw, strokeNone, fill: fillHex, fillNone: safeFillNone }, "Rechthoek stijl", true);
-    }else{
-      renderAll();
-    }
-  }
-
-  if(rectStrokeColor){
-    rectStrokeColor.addEventListener('input', () => { syncRectHexFromPickers(); applyStyleToSelected({ stroke: hx }, 'rect'); }, {passive:true});
-  }
-  if(rectStrokeColor){
-    rectStrokeColor.addEventListener('input', () => { syncRectHexFromPickers(); applyStyleToSelected({ stroke: hx }, 'rect'); }, {passive:true});
-  }
-  if(rectFillColor){
-    rectFillColor.addEventListener('input', () => { syncRectHexFromPickers(); applyStyleToSelected({ stroke: hx }, 'rect'); }, {passive:true});
-  }
-
-  if(rectStrokeHexTool){
-    rectStrokeHexTool.addEventListener('input', () => {
-      const hxRaw = normalizeHexInput(rectStrokeHexTool.value);
-      const hx = hxRaw ? hxRaw.toLowerCase() : null;
-      const ok = !!hx;
-      setInputValidity(rectStrokeHexTool, ok);
-      if(ok && rectStrokeColor){ rectStrokeColor.value = hx; applyStyleToSelected({ stroke: hx }, 'rect'); }
-    });
-    rectStrokeHexTool.addEventListener('blur', () => syncRectHexFromPickers());
-  }
-  if(rectFillHexTool){
-    rectFillHexTool.addEventListener('input', () => {
-      const hxRaw = normalizeHexInput(rectFillHexTool.value);
-      const hx = hxRaw ? hxRaw.toLowerCase() : null;
-      const ok = !!hx;
-      setInputValidity(rectFillHexTool, ok);
-      if(ok && rectFillColor){ rectFillColor.value = hx; applyStyleToSelected({ fill: hx }, 'rect'); }
-    });
-    rectFillHexTool.addEventListener('blur', () => syncRectHexFromPickers());
-  }
-
-// Rect tool: prevent invisible rectangles (no stroke AND no fill)
-  if(rectStrokeNone && rectFillNone){
-    rectStrokeNone.addEventListener('change', () => {
-      if(rectStrokeNone.checked) rectFillNone.checked = false;
-    });
-    rectFillNone.addEventListener('change', () => {
-      if(rectFillNone.checked) rectStrokeNone.checked = false;
-    });
-  }
-
-  const strokeWidth = document.getElementById('strokeWidth');
-  const quickName = document.getElementById('quickName');
-  const lineToolControls = document.getElementById('lineToolControls');
-
   const exportSvgBtn = document.getElementById('exportSvgBtn');
   const exportElementBtn = document.getElementById('exportElementBtn');
-  const exportElementSvgBtn = document.getElementById('exportElementSvgBtn');
   const importElementBtn = document.getElementById('importElementBtn');
   const importElementFile = document.getElementById('importElementFile');
   const exportBtn = document.getElementById('exportBtn');
@@ -1119,28 +648,7 @@ const rectStrokeNone = document.getElementById('rectStrokeNone');
   const italicBtn = document.getElementById('italicBtn');
   const underlineBtn = document.getElementById('underlineBtn');
 
-  // Line props
-  const lineProps = document.getElementById('lineProps');
-  const propStrokeColor = document.getElementById('propStrokeColor');
-  const rectProps = document.getElementById('rectProps');
-  const propRectStrokeColor = document.getElementById('propRectStrokeColor');
-  const propRectStrokeHex = document.getElementById('propRectStrokeHex');
-  const propRectStrokeWidth = document.getElementById('propRectStrokeWidth');
-  const propRectStrokeNone = document.getElementById('propRectStrokeNone');
-  const propRectFillColor = document.getElementById('propRectFillColor');
-  const propRectFillHex = document.getElementById('propRectFillHex');
-  const propRectFillNone = document.getElementById('propRectFillNone');
-
-  const propStrokeHex = document.getElementById('propStrokeHex');
-  const propStrokeWidth = document.getElementById('propStrokeWidth');
-  const propRotation = document.getElementById('propRotation');
-  const rotLeftBtn = document.getElementById('rotLeftBtn');
-  const rotRightBtn = document.getElementById('rotRightBtn');
-
   const jsonPreview = document.getElementById('jsonPreview');
-  const copySelectedJsonBtn = document.getElementById('copySelectedJsonBtn');
-
-  if(copySelectedJsonBtn) copySelectedJsonBtn.addEventListener('click', copySelectedElementJson);
 
   // Background controls
   const bgMode = document.getElementById('bgMode');
@@ -1157,47 +665,6 @@ const rectStrokeNone = document.getElementById('rectStrokeNone');
 
   // -------- Draggable toolbox --------
   const canvasToolbar = document.getElementById('canvasToolbar');
-
-  const tbCollapseBtn = document.getElementById('tbCollapseBtn');
-  const tbMini = document.getElementById('tbMini');
-  const tbExpandBtn = document.getElementById('tbExpandBtn');
-
-  // Toolbox collapse state (persisted)
-  const TB_COLLAPSE_KEY = 'meta_toolbox_collapsed_v1';
-  function setToolboxCollapsed(collapsed){
-    canvasToolbar.classList.toggle('collapsed', !!collapsed);
-    if(tbCollapseBtn) tbCollapseBtn.textContent = collapsed ? '⟫' : '⟪';
-    try{ localStorage.setItem(TB_COLLAPSE_KEY, collapsed ? '1' : '0'); }catch(_){}
-  }
-  function toggleToolbox(){ setToolboxCollapsed(!canvasToolbar.classList.contains('collapsed')); }
-
-  if(tbCollapseBtn) tbCollapseBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); toggleToolbox(); });
-
-  // Prevent toolbox-drag handler from hijacking button clicks
-  if(tbCollapseBtn){
-    tbCollapseBtn.addEventListener('pointerdown', (e)=>{ e.stopPropagation(); });
-    tbCollapseBtn.addEventListener('mousedown', (e)=>{ e.stopPropagation(); });
-  }
-  if(tbExpandBtn){
-    tbExpandBtn.addEventListener('pointerdown', (e)=>{ e.stopPropagation(); });
-    tbExpandBtn.addEventListener('mousedown', (e)=>{ e.stopPropagation(); });
-  }
-  if(tbExpandBtn) tbExpandBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); setToolboxCollapsed(false); });
-
-  // Restore
-  try{ if(localStorage.getItem(TB_COLLAPSE_KEY) === '1') setToolboxCollapsed(true); }catch(_){}
-
-  // Shortcut: Tab toggles toolbox (unless typing)
-  window.addEventListener('keydown', (e)=>{
-    if(e.key === 'Tab'){
-      const t = e.target;
-      const typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
-      if(!typing){
-        e.preventDefault();
-        toggleToolbox();
-      }
-    }
-  });
   const tbDrag = document.getElementById('tbDrag');
   const canvasWrap = document.querySelector('.canvasWrap');
 
@@ -1398,92 +865,6 @@ const rectStrokeNone = document.getElementById('rectStrokeNone');
     return { r:parseInt(s.slice(0,2),16), g:parseInt(s.slice(2,4),16), b:parseInt(s.slice(4,6),16) };
   }
 
-  
-  // Rect toolbox: hex input sync (stroke/fill)
-  
-  function normalizeHexToolValue(v){
-    v = String(v||"").trim();
-    if(!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)) return null;
-    if(v.length === 4){
-      return ("#" + v[1]+v[1] + v[2]+v[2] + v[3]+v[3]).toLowerCase();
-    }
-    return v.toLowerCase();
-  }
-  function setPickerAndApply(pickerEl, hexStr){
-    // Only selected element should change: update picker UI then apply directly to selected rect
-    if(!pickerEl || !hexStr) return;
-    pickerEl.value = hexStr;
-    if(typeof applyPaintToSelectedRect === 'function'){
-      applyStyleToSelected({ stroke: hx }, 'rect');
-      renderAll();
-    }
-  }
-function isValidHexColor(s){
-    return /^#(?:[0-9a-fA-F]{3}){1,2}$/.test(String(s||"").trim());
-  }
-  function normalizeHex6(s){
-    s = String(s||"").trim();
-    if(!isValidHexColor(s)) return null;
-    if(s.length === 4){
-      return "#" + s[1]+s[1] + s[2]+s[2] + s[3]+s[3];
-    }
-    return s.toLowerCase();
-  }
-function normalizeHexInput(input){
-    if(input == null) return null;
-    let s = String(input).trim();
-    if(!s) return null;
-    if(s[0] !== '#') s = '#' + s;
-    // allow #RGB or #RRGGBB
-    const m3 = /^#([0-9a-fA-F]{3})$/.exec(s);
-    if(m3){
-      const t = m3[1];
-      s = '#' + t[0]+t[0] + t[1]+t[1] + t[2]+t[2];
-    }
-    const m6 = /^#([0-9a-fA-F]{6})$/.exec(s);
-    if(!m6) return null;
-    return ('#' + m6[1]).toLowerCase();
-  }
-
-  function setLineStrokeProps(el, {hex, width}, label, commitHistory=true){
-    if(!el || el.type !== 'line') return;
-    const hx = normalizeHexInput(hex) || normalizeHexInput(el.stroke) || '#111111';
-    let w = Number(width);
-    if(!isFinite(w)) w = (el.strokeWidth ?? 2);
-    w = Math.max(0.05, Math.min(50, w));
-
-    if(commitHistory) pushHistory(label);
-
-    el.stroke = hx;
-    el.strokeWidth = w;
-    state.meta.updatedAt = nowIso();
-
-    // sync UI
-    if(propStrokeColor) propStrokeColor.value = hx;
-    if(propStrokeHex){ propStrokeHex.value = hx; propStrokeHex.classList.remove('invalid'); }
-    if(propStrokeWidth) propStrokeWidth.value = w;
-
-    try{ syncJsonPreview(); }catch(_){ }
-    renderAll();
-  }
-  function setLineRotationProps(el, deg, label, commitHistory=true){
-    if(!el || el.type !== 'line') return;
-    let r = Number(deg);
-    if(!isFinite(r)) r = Number(el.rotation || 0);
-    r = ((r % 360) + 360) % 360;
-    if(r > 180) r -= 360;
-    if(commitHistory) pushHistory(label);
-    el.rotation = round(r, 2);
-    state.meta.updatedAt = nowIso();
-    if(propRotation) propRotation.value = el.rotation;
-    const g = selectedId ? itemsG.querySelector(`.stage-item[data-id="${selectedId}"]`) : null;
-    if(g) g.setAttribute('transform', itemTransform(el));
-    renderSelectionOverlay();
-    try{ syncJsonPreview(); }catch(_){}
-  }
-
-
-
   const PAINT256 = buildPaintPalette256();
 
   function dominantColorFromSvgText(svgText){
@@ -1583,13 +964,8 @@ function normalizeHexInput(input){
 
   // -------- Selection / interaction --------
   let selectedId = null;
-  let propsEditing = false; // edit-lock for properties panel
-
   let dragMode = null; // move|resize
   let dragStart = null;
-  // -------- Line tool drawing state --------
-  let lineDrawing = null;
-  let rectDrawing = null; // {start:{x,y}, cur:{x,y}, tempLineEl:SVGLineElement}
 
   function elementById(id){ return state.elements.find(e => e.id === id) || null; }
   function sortElements(){ state.elements.sort((a,b) => (a.z||0)-(b.z||0)); }
@@ -1602,166 +978,7 @@ function normalizeHexInput(input){
     return {x:p.x, y:p.y};
   }
 
-
-  function ensureTempLine(){
-    if(lineDrawing && lineDrawing.tempLineEl) return lineDrawing.tempLineEl;
-    const ln = document.createElementNS("http://www.w3.org/2000/svg","line");
-    ln.setAttribute('stroke', strokeColor?.value || "#111111");
-    ln.setAttribute('stroke-width', strokeWidth?.value || 2);
-    ln.setAttribute('stroke-linecap', 'round');
-    ln.setAttribute('vector-effect', 'non-scaling-stroke');
-    ln.setAttribute('pointer-events','none');
-    overlayBoxG.appendChild(ln);
-    if(lineDrawing) lineDrawing.tempLineEl = ln;
-    return ln;
-  }
-
-  function updateTempLine(a,b){
-    const ln = ensureTempLine();
-    ln.setAttribute('x1', a.x); ln.setAttribute('y1', a.y);
-    ln.setAttribute('x2', b.x); ln.setAttribute('y2', b.y);
-    ln.setAttribute('stroke', strokeColor?.value || "#111111");
-    ln.setAttribute('stroke-width', strokeWidth?.value || 2);
-  }
-
-  function finalizeLine(){
-    if(!lineDrawing) return;
-    const a = lineDrawing.start, b = lineDrawing.cur;
-    const dx = b.x - a.x, dy = b.y - a.y;
-    const dist2 = dx*dx + dy*dy;
-
-    if(lineDrawing.tempLineEl && lineDrawing.tempLineEl.parentNode){
-      lineDrawing.tempLineEl.parentNode.removeChild(lineDrawing.tempLineEl);
-    }
-
-    const minLen2 = 0.2 * 0.2;
-    if(dist2 < minLen2){
-      lineDrawing = null;
-      return;
-    }
-
-    pushHistory("Lijn toegevoegd");
-    const id = uid();
-    const minX = Math.min(a.x, b.x);
-    const minY = Math.min(a.y, b.y);
-    const maxX = Math.max(a.x, b.x);
-    const maxY = Math.max(a.y, b.y);
-    const w = Math.max(maxX - minX, 1);
-    const h = Math.max(maxY - minY, 1);
-
-    state.elements.push({
-      id, type:'line',
-      name: 'Lijn',
-      x: round(minX,2),
-      y: round(minY,2),
-      w: round(w,2),
-      h: round(h,2),
-      z: ++state.zCounter,
-      locked: false,
-      x1: round(a.x - minX,2),
-      y1: round(a.y - minY,2),
-      x2: round(b.x - minX,2),
-      y2: round(b.y - minY,2),
-      stroke: strokeColor?.value || "#111111",
-      strokeWidth: Math.max(0.05, Math.min(50, Number(strokeWidth?.value || 2))),
-      rotation: 0,
-      strokeLineCap: "round"
-    });
-
-    state.meta.updatedAt = nowIso();
-    selectedId = id;
-    lineDrawing = null;
-    renderAll();
-  }
-
-
-
-  
-  // -------- Rect tool (draw) --------
-  function ensureTempRect(){
-    if(rectDrawing && rectDrawing.tempRectEl) return rectDrawing.tempRectEl;
-    const r = document.createElementNS("http://www.w3.org/2000/svg","rect");
-    r.setAttribute('x', 0);
-    r.setAttribute('y', 0);
-    r.setAttribute('width', 1);
-    r.setAttribute('height', 1);
-    r.setAttribute('fill', 'rgba(255,235,170,0.12)');
-    r.setAttribute('stroke', rectStrokeColor?.value || "#111111");
-    r.setAttribute('stroke-width', Math.max(0.05, Math.min(50, Number(rectStrokeWidth?.value || 2))));
-    r.setAttribute('stroke-dasharray', '4 3');
-    r.setAttribute('vector-effect','non-scaling-stroke');
-    r.setAttribute('pointer-events','none');
-    itemsG.appendChild(r);
-    if(rectDrawing) rectDrawing.tempRectEl = r;
-    return r;
-  }
-
-  function updateTempRect(a,b){
-    const r = ensureTempRect();
-    const x = Math.min(a.x, b.x);
-    const y = Math.min(a.y, b.y);
-    const w = Math.max(Math.abs(b.x - a.x), 1);
-    const h = Math.max(Math.abs(b.y - a.y), 1);
-    r.setAttribute('x', x);
-    r.setAttribute('y', y);
-    r.setAttribute('width', w);
-    r.setAttribute('height', h);
-    const sw = Math.max(0.05, Math.min(50, Number(rectStrokeWidth?.value || 2)));
-    r.setAttribute('stroke', rectStrokeColor?.value || "#111111");
-    r.setAttribute('stroke-width', sw);
-  }
-
-  function finalizeRect(){
-    if(!rectDrawing) return;
-    const a = rectDrawing.start, b = rectDrawing.cur;
-
-    if(rectDrawing.tempRectEl && rectDrawing.tempRectEl.parentNode){
-      rectDrawing.tempRectEl.parentNode.removeChild(rectDrawing.tempRectEl);
-    }
-
-    const minX = Math.min(a.x, b.x);
-    const minY = Math.min(a.y, b.y);
-    const w = Math.abs(b.x - a.x);
-    const h = Math.abs(b.y - a.y);
-
-    const minSize = 1;
-    if(w < minSize || h < minSize){
-      rectDrawing = null;
-      return;
-    }
-
-    pushHistory("Rechthoek toegevoegd");
-    const id = uid();
-
-    const strokeHex = rectStrokeColor?.value || "#111111";
-    const sw = Math.max(0.05, Math.min(50, Number(rectStrokeWidth?.value || 2)));
-    const fillHex = rectFillNone?.checked ? null : (rectFillColor?.value || "#FFFFFF");
-
-    state.elements.push({
-      id, type:'rect',
-      name: 'Rechthoek',
-      x: round(minX,2),
-      y: round(minY,2),
-      w: round(Math.max(w,1),2),
-      h: round(Math.max(h,1),2),
-      z: ++state.zCounter,
-      locked: false,
-      stroke: strokeHex,
-      strokeWidth: sw,
-      strokeNone: !!rectStrokeNone?.checked,
-      fill: fillHex,
-      // never allow both strokeNone and fillNone -> keep fill if stroke removed
-      fillNone: !!rectFillNone?.checked && !rectStrokeNone?.checked,
-      rotation: 0
-    });
-
-    state.meta.updatedAt = nowIso();
-    selectedId = id;
-    rectDrawing = null;
-    renderAll();
-  }
-
-// -------- Viewport (pan/zoom) --------
+  // -------- Viewport (pan/zoom) --------
   const BASE_VB = { x: 0, y: 0, w: state.page.width, h: state.page.height };
 
   // Persisted UI view state
@@ -1773,22 +990,6 @@ function normalizeHexInput(input){
 
   let activeTool = null; // null | 'magnifier'
   let spaceDown = false;
-  let spaceDownSince = 0;
-
-  function resetPanState(reason=""){
-    // safety: avoid 'stuck space' keeping panning mode enabled
-    spaceDown = false;
-    spaceDownSince = 0;
-    stage.classList.remove('stagePan');
-    stage.classList.remove('dragging');
-    if(panning){
-      panning = false;
-      panStart = null;
-      try{ stage.releasePointerCapture && stage.releasePointerCapture(1); }catch(_){ }
-    }
-    if(!panning) stage.style.cursor = '';
-  }
-
 
   function clampZoom(z){ return clamp(z, Z_MIN, Z_MAX); }
 
@@ -1835,7 +1036,6 @@ function normalizeHexInput(input){
 
   // Pan (space or middle mouse)
   let panning = false;
-    stage.classList.remove('dragging');
   let panStart = null;
 
   stage.addEventListener('wheel', (evt) => {
@@ -1849,7 +1049,6 @@ function normalizeHexInput(input){
   window.addEventListener('keydown', (e) => {
     if(e.code === 'Space'){
       spaceDown = true;
-      spaceDownSince = Date.now();
       stage.classList.add('stagePan');
     }
     const isMac = navigator.platform.toLowerCase().includes('mac');
@@ -1867,24 +1066,13 @@ function normalizeHexInput(input){
       if(!panning) stage.style.cursor = '';
     }
   });
-  // Safety: if the browser loses focus while Space is held, keyup may not fire -> prevent stuck pan mode
-  window.addEventListener('blur', () => resetPanState('blur'));
-  document.addEventListener('visibilitychange', () => {
-    if(document.hidden) resetPanState('hidden');
-  });
-
-
 
   stage.addEventListener('pointerdown', (evt) => {
     // Pan gesture
-    if(spaceDown && spaceDownSince && (Date.now() - spaceDownSince > 1500)){
-      resetPanState('stuck-space');
-    }
-    if(evt.button === 1 || spaceDown || (interactionMode === 'canvas' && evt.button === 0)){
+    if(evt.button === 1 || spaceDown){
       evt.preventDefault();
       evt.stopPropagation();
       panning = true;
-      if(interactionMode === 'canvas') stage.classList.add('dragging');
       const v = state.meta.ui.view;
       panStart = { p: screenToStagePoint(evt), x: v.x, y: v.y, z: v.z };
       stage.setPointerCapture(evt.pointerId);
@@ -1916,350 +1104,15 @@ function normalizeHexInput(input){
     stage.releasePointerCapture(evt.pointerId);
   });
 
-  
-  // -------- Bitmap Color Snoop (pipet via SVG snapshot -> canvas) --------
-  const bmpSnoopBtn = document.getElementById('bmpSnoopBtn');
-  const bmpSnoopBox = document.getElementById('bmpSnoopBox');
-  const bmpSnoopSwatch = document.getElementById('bmpSnoopSwatch');
-  const bmpSnoopHex = document.getElementById('bmpSnoopHex');
-  const bmpSnoopStrokeFirst = document.getElementById('bmpSnoopStrokeFirst');
-
-  const bmpSnoopState = {
-    enabled:false,
-    locked:null,
-    hover:null,
-    strokeFirst:true,
-    dirty:true,
-    building:false,
-    canvas:null,
-    ctx:null,
-    w:0, h:0,
-    dpr:1,
-    img:null,
-    url:null,
-    rebuildTimer:null
-  };
-
-  const bmpSnoopPreview = { id:null, prop:null, orig:null };
-
-  function bmpSnoopGetPreviewTarget(){
-    const el = (typeof selectedId !== 'undefined' && selectedId) ? elementById(selectedId) : null;
-    if(!el) return null;
-    if(el.locked) return null;
-    if(el.type === 'line') return {el, prop:'stroke'};
-    if(el.type === 'text') return {el, prop:'fill'};
-    return null;
-  }
-
-  function bmpSnoopPreviewApply(hx){
-    const t = bmpSnoopGetPreviewTarget();
-    if(!t) return;
-    if(bmpSnoopPreview.id !== t.el.id || bmpSnoopPreview.prop !== t.prop){
-      // switching target: restore previous preview first
-      bmpSnoopPreviewClear();
-      bmpSnoopPreview.id = t.el.id;
-      bmpSnoopPreview.prop = t.prop;
-      bmpSnoopPreview.orig = (t.el[t.prop] ?? null);
-    }
-    if(t.el[t.prop] !== hx){
-      t.el[t.prop] = hx;
-      state.meta.updatedAt = nowIso();
-      renderAll();
-    }
-  }
-
-  function bmpSnoopPreviewClear(){
-    if(!bmpSnoopPreview.id) return;
-    const el = elementById(bmpSnoopPreview.id);
-    if(el && !el.locked && bmpSnoopPreview.prop){
-      el[bmpSnoopPreview.prop] = bmpSnoopPreview.orig;
-      state.meta.updatedAt = nowIso();
-      renderAll();
-    }
-    bmpSnoopPreview.id = null;
-    bmpSnoopPreview.prop = null;
-    bmpSnoopPreview.orig = null;
-  }
-
-  function bmpSnoopApplyLockedToTarget(hx){
-    const t = bmpSnoopGetPreviewTarget();
-    if(!t) return false;
-    pushHistory(`Kleur snoop toegepast op ${t.el.type}`);
-    t.el[t.prop] = hx;
-    state.meta.updatedAt = nowIso();
-    renderAll();
-    return true;
-  }
-
-  function bmpSnoopLoad(){
-    try{
-      const l = localStorage.getItem('bmpSnoop.locked');
-      if(l) bmpSnoopState.locked = l;
-      const sf = localStorage.getItem('bmpSnoop.strokeFirst');
-      if(sf !== null) bmpSnoopState.strokeFirst = (sf === '1');
-    }catch(_){}
-    if(bmpSnoopStrokeFirst) bmpSnoopStrokeFirst.checked = !!bmpSnoopState.strokeFirst;
-    bmpSnoopRenderLocked();
-  }
-
-  function bmpSnoopSave(){
-    try{
-      if(bmpSnoopState.locked) localStorage.setItem('bmpSnoop.locked', bmpSnoopState.locked);
-      else localStorage.removeItem('bmpSnoop.locked');
-      localStorage.setItem('bmpSnoop.strokeFirst', bmpSnoopState.strokeFirst ? '1':'0');
-    }catch(_){}
-  }
-
-  function bmpSnoopRenderLocked(){
-    const hx = bmpSnoopState.locked;
-    if(bmpSnoopSwatch) bmpSnoopSwatch.style.background = hx || '#fff';
-    if(bmpSnoopHex) bmpSnoopHex.textContent = hx || '—';
-  }
-
-  function bmpSnoopRenderHover(){
-    if(!bmpSnoopState.enabled) return;
-    const hx = bmpSnoopState.hover;
-    if(hx){
-      bmpSnoopSwatch.style.background = hx;
-      bmpSnoopHex.textContent = hx;
-      bmpSnoopSwatch.title = `Hover: ${hx} (klik om vast te zetten)`;
-    }else{
-      bmpSnoopRenderLocked();
-      bmpSnoopSwatch.title = 'Hover om te meten, klik om vast te zetten';
-    }
-  }
-
-  function bmpSnoopSetEnabled(on){
-    bmpSnoopState.enabled = !!on;
-    bmpSnoopState.hover = null;
-    bmpSnoopBox.style.display = bmpSnoopState.enabled ? '' : 'none';
-    if(bmpSnoopBtn) bmpSnoopBtn.classList.toggle('active', bmpSnoopState.enabled);
-    if(bmpSnoopBtn) bmpSnoopBtn.textContent = bmpSnoopState.enabled ? '🧪 Color snoop (aan)' : '🧪 Color snoop';
-    if(bmpSnoopState.enabled){
-      bmpSnoopInvalidate('enable');
-      toast('Color snoop aan: hover voor kleur, klik om vast te zetten.');
-    }else{
-      toast('Color snoop uit.');
-    }
-    bmpSnoopRenderHover();
-      // Live preview for selected line/text
-      if(hx) bmpSnoopPreviewApply(hx); else bmpSnoopPreviewClear();
-    if(!bmpSnoopState.enabled) bmpSnoopPreviewClear();
-  }
-
-  function bmpSnoopInvalidate(reason){
-    if(!bmpSnoopState.enabled) return;
-    bmpSnoopState.dirty = true;
-    // debounce rebuild; avoid rebuilding on every pan-move
-    clearTimeout(bmpSnoopState.rebuildTimer);
-    bmpSnoopState.rebuildTimer = setTimeout(()=>bmpSnoopBuildSnapshot(), 120);
-  }
-
-  function bmpSnoopEnsureCanvas(){
-    if(!bmpSnoopState.canvas){
-      const c = document.createElement('canvas');
-      c.width = 1; c.height = 1;
-      bmpSnoopState.canvas = c;
-      bmpSnoopState.ctx = c.getContext('2d', { willReadFrequently:true });
-    }
-  }
-
-  function bmpSnoopStageSnapshotSvg(){
-    // Clone stage and remove overlays/handles/magnifier to avoid sampling UI chrome
-    const clone = stage.cloneNode(true);
-    const rmIds = ['overlayBox','overlayHandle','magG'];
-    rmIds.forEach(id => { const n = clone.querySelector('#'+id); if(n) n.remove(); });
-    // If there are other pointer overlays, remove anything with pointer-events="all" that isn't items/scene
-    clone.querySelectorAll('[pointer-events="all"]').forEach(n => {
-      if(n.id !== 'items' && n.id !== 'scene' && n.id !== 'viewport') n.remove();
-    });
-    // Set explicit size to match current on-screen pixels
-    const r = stage.getBoundingClientRect();
-    const w = Math.max(1, Math.round(r.width));
-    const h = Math.max(1, Math.round(r.height));
-    clone.setAttribute('width', String(w));
-    clone.setAttribute('height', String(h));
-    clone.setAttribute('preserveAspectRatio','none');
-    // Ensure viewBox is correct
-    if(!clone.getAttribute('viewBox') && clone.getAttribute('viewbox')){
-      clone.setAttribute('viewBox', clone.getAttribute('viewbox'));
-    }
-    return new XMLSerializer().serializeToString(clone);
-  }
-
-  async function bmpSnoopBuildSnapshot(){
-    if(!bmpSnoopState.enabled) return;
-    if(bmpSnoopState.building) return;
-    bmpSnoopState.building = true;
-    bmpSnoopEnsureCanvas();
-
-    try{
-      const r = stage.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      const w = Math.max(1, Math.round(r.width * dpr));
-      const h = Math.max(1, Math.round(r.height * dpr));
-      bmpSnoopState.dpr = dpr;
-      bmpSnoopState.w = w;
-      bmpSnoopState.h = h;
-      bmpSnoopState.canvas.width = w;
-      bmpSnoopState.canvas.height = h;
-
-      const svgText = bmpSnoopStageSnapshotSvg();
-      const blob = new Blob([svgText], {type:'image/svg+xml;charset=utf-8'});
-      if(bmpSnoopState.url) URL.revokeObjectURL(bmpSnoopState.url);
-      bmpSnoopState.url = URL.createObjectURL(blob);
-
-      const img = new Image();
-      bmpSnoopState.img = img;
-
-      await new Promise((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = (e) => reject(e);
-        img.src = bmpSnoopState.url;
-      });
-
-      const ctx = bmpSnoopState.ctx;
-      ctx.clearRect(0,0,w,h);
-      ctx.drawImage(img, 0,0, w,h);
-      bmpSnoopState.dirty = false;
-    }catch(e){
-      console.warn('bmpSnoop snapshot failed', e);
-      // Keep dirty so we can retry on next movement
-      bmpSnoopState.dirty = true;
-    }finally{
-      bmpSnoopState.building = false;
-    }
-  }
-
-  function bmpSnoopRgbToHex(r,g,b){
-    const to = (n)=>n.toString(16).padStart(2,'0');
-    return `#${to(r)}${to(g)}${to(b)}`.toUpperCase();
-  }
-
-  function bmpSnoopPickMajority3x3(px, py){
-    const ctx = bmpSnoopState.ctx;
-    const w = bmpSnoopState.w, h = bmpSnoopState.h;
-    if(!ctx || !w || !h) return null;
-
-    const x0 = Math.max(0, Math.min(w-1, px-1));
-    const y0 = Math.max(0, Math.min(h-1, py-1));
-    const x1 = Math.max(0, Math.min(w-1, px+1));
-    const y1 = Math.max(0, Math.min(h-1, py+1));
-    const sw = x1 - x0 + 1;
-    const sh = y1 - y0 + 1;
-    const data = ctx.getImageData(x0, y0, sw, sh).data;
-
-    const counts = new Map();
-    for(let i=0; i<data.length; i+=4){
-      const a = data[i+3];
-      if(a < 16) continue; // ignore near-transparent
-      const r = data[i], g=data[i+1], b=data[i+2];
-      const hx = bmpSnoopRgbToHex(r,g,b);
-      counts.set(hx, (counts.get(hx)||0)+1);
-    }
-    if(counts.size === 0) return null;
-    let best=null, bestC=-1;
-    counts.forEach((c,hx)=>{ if(c>bestC){ bestC=c; best=hx; } });
-    return best;
-  }
-
-  function bmpSnoopOnMove(evt){
-    if(!bmpSnoopState.enabled) return;
-    if(bmpSnoopState.dirty) bmpSnoopBuildSnapshot();
-    if(bmpSnoopState.dirty) return; // snapshot not ready yet
-
-    const rect = stage.getBoundingClientRect();
-    const cx = evt.clientX, cy = evt.clientY;
-    if(cx < rect.left || cx > rect.right || cy < rect.top || cy > rect.bottom){
-      if(bmpSnoopState.hover !== null){ bmpSnoopState.hover = null; bmpSnoopRenderHover();
-      // Live preview for selected line/text
-      if(hx) bmpSnoopPreviewApply(hx); else bmpSnoopPreviewClear();
-    if(!bmpSnoopState.enabled) bmpSnoopPreviewClear(); }
-      return;
-    }
-    const dpr = bmpSnoopState.dpr || 1;
-    const px = Math.round((cx - rect.left) * dpr);
-    const py = Math.round((cy - rect.top) * dpr);
-
-    const hx = bmpSnoopPickMajority3x3(px, py);
-    if(hx !== bmpSnoopState.hover){
-      bmpSnoopState.hover = hx;
-      bmpSnoopRenderHover();
-      // Live preview for selected line/text
-      if(hx) bmpSnoopPreviewApply(hx); else bmpSnoopPreviewClear();
-    if(!bmpSnoopState.enabled) bmpSnoopPreviewClear();
-    }
-  }
-
-  function bmpSnoopOnClick(evt){
-    if(!bmpSnoopState.enabled) return;
-    // lock current hover (or sample at click point)
-    bmpSnoopOnMove(evt);
-    const hx = bmpSnoopState.hover;
-    if(hx){
-      bmpSnoopState.locked = hx;
-      bmpSnoopSave();
-      // Apply locked color to selected line/text (commit)
-      bmpSnoopApplyLockedToTarget(hx);
-      toast(`Kleur vastgezet: ${hx}`);
-    }else{
-      toast('Geen kleur gevonden op dit punt.');
-    }
-    bmpSnoopPreviewClear();
-    bmpSnoopSetEnabled(false);
-  }
-
-  if(bmpSnoopBtn){
-    bmpSnoopBtn.addEventListener('click', ()=> bmpSnoopSetEnabled(!bmpSnoopState.enabled));
-  }
-  if(bmpSnoopStrokeFirst){
-    bmpSnoopStrokeFirst.addEventListener('change', ()=>{
-      bmpSnoopState.strokeFirst = !!bmpSnoopStrokeFirst.checked;
-      bmpSnoopSave();
-    });
-  }
-
-  // Capture mouse move globally while enabled (event-target independent)
-  document.addEventListener('mousemove', (e)=>{ if(bmpSnoopState.enabled) bmpSnoopOnMove(e); }, true);
-  document.addEventListener('pointermove', (e)=>{ if(bmpSnoopState.enabled) bmpSnoopOnMove(e); }, true);
-  document.addEventListener('click', (e)=>{ if(bmpSnoopState.enabled) bmpSnoopOnClick(e); }, true);
-
-  // Invalidate snapshot on view changes + major renders
-  const _origApplyView = applyView;
-  applyView = function(){
-    _origApplyView();
-    if(bmpSnoopState.enabled) bmpSnoopInvalidate('view');
-  };
-
-  const _origRenderAll = renderAll;
-  renderAll = function(){
-    _origRenderAll();
-    if(bmpSnoopState.enabled) bmpSnoopInvalidate('render');
-  };
-
-  bmpSnoopLoad();
-
-// -------- Magnifier tool --------
+  // -------- Magnifier tool --------
   const magState = { enabled:false, factor: 3.0, radiusPx: 90 };
 
   function setActiveTool(tool){
     activeTool = tool;
-    // Drawing tools require object interaction; avoid confusing 'canvas' mode while drawing
-    if(tool === 'line' || tool === 'rect'){
-      // Ensure we don't stay in a stuck pan state (e.g. Space key lost)
-      resetPanState('tool');
-      if(interactionMode === 'canvas') setInteractionMode('object');
-    }
     magnifierBtn.classList.toggle('active', tool === 'magnifier');
-    if(lineToolBtn) lineToolBtn.classList.toggle('active', tool === 'line');
-    if(rectToolBtn) rectToolBtn.classList.toggle('active', tool === 'rect');
     stage.classList.toggle('stageMagnifier', tool === 'magnifier');
-    stage.classList.toggle('stageLineTool', tool === 'line');
-    stage.classList.toggle('stageRectTool', tool === 'rect');
     magState.enabled = tool === 'magnifier';
     magG.style.display = magState.enabled ? 'block' : 'none';
-    if(lineToolControls) lineToolControls.style.display = (tool === 'line') ? 'block' : 'none';
-    if(rectToolControls) rectToolControls.style.display = (tool === 'rect') ? 'block' : 'none';
     state.meta.updatedAt = nowIso();
   }
 
@@ -2267,25 +1120,6 @@ function normalizeHexInput(input){
     setActiveTool(activeTool === 'magnifier' ? null : 'magnifier');
     toast(activeTool === 'magnifier' ? 'Magnifier aan.' : 'Magnifier uit.');
   });
-
-
-  if(lineToolBtn){
-    lineToolBtn.addEventListener('click', () => {
-      if(interactionMode === 'canvas'){
-        setInteractionMode('object');
-      }
-      setActiveTool(activeTool === 'line' ? null : 'line');
-      toast(activeTool === 'line' ? "Line tool aan" : "Line tool uit");
-    });
-  }
-
-  if(rectToolBtn){
-    rectToolBtn.addEventListener('click', () => {
-      if(interactionMode === 'canvas') setInteractionMode('object');
-      setActiveTool(activeTool === 'rect' ? null : 'rect');
-      toast(activeTool === 'rect' ? "Rechthoek tool aan" : "Rechthoek tool uit");
-    });
-  }
 
   resetViewBtn.addEventListener('click', resetView);
 
@@ -2420,33 +1254,7 @@ function normalizeHexInput(input){
     }
   }
 
-function ensureLineNormalized(el){
-    if(!el || el.type !== 'line') return;
-    const w = Number(el.w || 0);
-    const h = Number(el.h || 0);
-    if(w <= 0 || h <= 0) return;
-    // If normalized endpoints already exist, keep them.
-    if(isFinite(el.nx1) && isFinite(el.ny1) && isFinite(el.nx2) && isFinite(el.ny2)) return;
-    const x1 = Number(el.x1 ?? 0);
-    const y1 = Number(el.y1 ?? 0);
-    const x2 = Number(el.x2 ?? w);
-    const y2 = Number(el.y2 ?? h);
-    const clamp01 = (v) => Math.max(0, Math.min(1, v));
-    el.nx1 = clamp01(x1 / w);
-    el.ny1 = clamp01(y1 / h);
-    el.nx2 = clamp01(x2 / w);
-    el.ny2 = clamp01(y2 / h);
-  }
-
-  function itemTransform(el){
-    const r = Number(el.rotation || 0);
-    if(isFinite(r) && Math.abs(r) > 0.0001){
-      return `translate(${el.x} ${el.y}) rotate(${r} ${el.w/2} ${el.h/2})`;
-    }
-    return `translate(${el.x} ${el.y})`;
-  }
-
-  function renderAll(){
+function renderAll(){
     sortElements();
     // page background
     if(stageBg){
@@ -2463,7 +1271,7 @@ function ensureLineNormalized(el){
       g.dataset.id = el.id;
       g.dataset.type = el.type;
       g.dataset.locked = el.locked ? "1":"0";
-      g.setAttribute('transform', itemTransform(el));
+      g.setAttribute('transform', `translate(${el.x} ${el.y})`);
       g.style.pointerEvents = el.locked ? 'none' : 'auto';
 
       // Hitbox so selection/drag also works when clicking on empty/transparent areas
@@ -2502,41 +1310,9 @@ function ensureLineNormalized(el){
         if((el.textAnchor||"start")==="end") t.setAttribute('x', el.w);
         g.appendChild(t);
       }
- else if(el.type === 'rect'){
-        const r = document.createElementNS("http://www.w3.org/2000/svg","rect");
-        r.setAttribute('x', 0);
-        r.setAttribute('y', 0);
-        r.setAttribute('width', el.w);
-        r.setAttribute('height', el.h);
-        const strokeNone = !!el.strokeNone;
-        const fillNone = !!el.fillNone;
-        r.setAttribute('stroke', strokeNone ? 'none' : (el.stroke || '#111111'));
-        r.setAttribute('stroke-width', strokeNone ? '0' : (el.strokeWidth ?? 2));
-        r.setAttribute('fill', fillNone ? 'none' : (el.fill || '#FFFFFF'));
-        r.setAttribute('vector-effect','non-scaling-stroke');
-        g.appendChild(r);
-      }
- else if(el.type === 'line'){
-        const ln = document.createElementNS("http://www.w3.org/2000/svg","line");
-        ensureLineNormalized(el);
-        const x1 = (isFinite(el.nx1)? el.nx1:0) * el.w;
-        const y1 = (isFinite(el.ny1)? el.ny1:0) * el.h;
-        const x2 = (isFinite(el.nx2)? el.nx2:1) * el.w;
-        const y2 = (isFinite(el.ny2)? el.ny2:1) * el.h;
-        ln.setAttribute('x1', x1);
-        ln.setAttribute('y1', y1);
-        ln.setAttribute('x2', x2);
-        ln.setAttribute('y2', y2);
-        ln.setAttribute('stroke', el.stroke || "#111111");
-        ln.setAttribute('stroke-width', el.strokeWidth || 2);
-        ln.setAttribute('stroke-linecap', el.strokeLineCap || "round");
-        ln.setAttribute('vector-effect', 'non-scaling-stroke');
-        g.appendChild(ln);
-      }
 
       g.addEventListener('pointerdown', (evt) => {
         if(evt.button !== 0) return;
-        if(interactionMode === 'canvas') return;
         evt.stopPropagation();
         select(g.dataset.id);
         const el = elementById(g.dataset.id);
@@ -2551,7 +1327,6 @@ function ensureLineNormalized(el){
 
     renderSelectionOverlay();
     syncPropsUI();
-    syncQuickToolboxUI();
     syncJsonPreview();
     refreshActionButtons();
     applyToolbarPos();
@@ -2583,33 +1358,12 @@ function ensureLineNormalized(el){
     selectedId = id;
     renderSelectionOverlay();
     syncPropsUI();
-    syncQuickToolboxUI();
     refreshActionButtons();
     applyToolbarPos();
   }
 
   stage.addEventListener('pointerdown', (evt) => {
     if(evt.button !== 0) return;
-    if(activeTool === 'line'){
-      if(interactionMode === 'canvas') setInteractionMode('object');
-      evt.preventDefault();
-      evt.stopPropagation();
-      const p = screenToStagePoint(evt);
-      lineDrawing = { start: p, cur: p, tempLineEl: null };
-      updateTempLine(p,p);
-      stage.setPointerCapture(evt.pointerId);
-      return;
-    }
-    if(activeTool === 'rect'){
-      if(interactionMode === 'canvas') setInteractionMode('object');
-      evt.preventDefault();
-      evt.stopPropagation();
-      const p = screenToStagePoint(evt);
-      rectDrawing = { start: p, cur: p, tempRectEl: null };
-      updateTempRect(p,p);
-      stage.setPointerCapture(evt.pointerId);
-      return;
-    }
     selectedId = null;
     renderSelectionOverlay();
     syncPropsUI();
@@ -2618,22 +1372,8 @@ function ensureLineNormalized(el){
   });
 
   stage.addEventListener('pointermove', (evt) => {
-    if(lineDrawing && activeTool === 'line'){
-      const p = screenToStagePoint(evt);
-      lineDrawing.cur = p;
-      updateTempLine(lineDrawing.start, p);
-      return;
-    }
-    if(rectDrawing && activeTool === 'rect'){
-      const p = screenToStagePoint(evt);
-      rectDrawing.cur = p;
-      updateTempRect(rectDrawing.start, p);
-      return;
-    }
-
     if(!dragMode || !selectedId) return;
     const el = elementById(selectedId);
-      ensureLineNormalized(el);
     if(!el || el.locked) return;
 
     const p = screenToStagePoint(evt);
@@ -2645,7 +1385,7 @@ function ensureLineNormalized(el){
       el.y = round(clamp(dragStart.oy + dy, 0, state.page.height - el.h), 2);
       state.meta.updatedAt = nowIso();
       const g = itemsG.querySelector(`.stage-item[data-id="${selectedId}"]`);
-      if(g) g.setAttribute('transform', itemTransform(el));
+      if(g) g.setAttribute('transform', `translate(${el.x} ${el.y})`);
       renderSelectionOverlay();
       syncPropsUI(false);
       syncJsonPreview();
@@ -2685,37 +1425,12 @@ function ensureLineNormalized(el){
       syncPropsUI(false);
       syncJsonPreview();
     }
-
-    if(dragMode === 'rotate'){
-      const { cx, cy, startAngle, startRot } = dragStart;
-      const ang = Math.atan2(p.y - cy, p.x - cx);
-      const deltaDeg = (ang - startAngle) * 180 / Math.PI;
-      el.rotation = round((startRot + deltaDeg), 2);
-      state.meta.updatedAt = nowIso();
-      const g = itemsG.querySelector(`.stage-item[data-id="${selectedId}"]`);
-      if(g) g.setAttribute('transform', itemTransform(el));
-      renderSelectionOverlay();
-      syncPropsUI(false);
-      syncJsonPreview();
-    }
   });
 
   stage.addEventListener('pointerup', (evt) => {
-    if(lineDrawing && activeTool === 'line'){
-      finalizeLine();
-      try{ stage.releasePointerCapture(evt.pointerId); }catch(_){}
-      return;
-    }
-    if(rectDrawing && activeTool === 'rect'){
-      finalizeRect();
-      try{ stage.releasePointerCapture(evt.pointerId); }catch(_){ }
-      return;
-    }
-
     if(!dragMode) return;
     if(dragMode === 'move') pushHistory("Verplaatst");
     if(dragMode === 'resize') pushHistory("Geresized");
-    if(dragMode === 'rotate') pushHistory("Geroteerd");
     dragMode = null;
     dragStart = null;
     stage.releasePointerCapture(evt.pointerId);
@@ -2736,7 +1451,6 @@ function ensureLineNormalized(el){
     box.setAttribute('width', el.w);
     box.setAttribute('height', el.h);
     box.setAttribute('class','sel-box');
-    box.setAttribute('pointer-events','none');
     overlayBoxG.appendChild(box);
 
     // interactive resize handle (bottom-right)
@@ -2756,170 +1470,7 @@ function ensureLineNormalized(el){
       dragStart = { ...screenToStagePoint(evt), hx: el.x, hy: el.y, ow: el.w, oh: el.h, hx2: el.x + el.w, hy2: el.y + el.h };
       stage.setPointerCapture(evt.pointerId);
     });
-  
-    // rotate handle (for line)
-    if(el.type === 'line'){
-      const cx = el.x + el.w/2;
-      const cy = el.y + el.h/2;
-      const topx = el.x + el.w/2;
-      const topy = el.y - 10;
-
-      const stem = document.createElementNS("http://www.w3.org/2000/svg","line");
-      stem.setAttribute('x1', topx);
-      stem.setAttribute('y1', el.y);
-      stem.setAttribute('x2', topx);
-      stem.setAttribute('y2', topy);
-      stem.setAttribute('stroke', 'rgba(0,0,0,0.35)');
-      stem.setAttribute('stroke-width', '1');
-      stem.setAttribute('vector-effect','non-scaling-stroke');
-      stem.style.pointerEvents = 'none';
-      overlayHandleG.appendChild(stem);
-
-      const rotHandle = document.createElementNS("http://www.w3.org/2000/svg","circle");
-      rotHandle.setAttribute('cx', topx);
-      rotHandle.setAttribute('cy', topy);
-      rotHandle.setAttribute('r', 2.6);
-      rotHandle.setAttribute('class','handle');
-      rotHandle.style.pointerEvents = 'all';
-      overlayHandleG.appendChild(rotHandle);
-
-      rotHandle.addEventListener('pointerdown', (evt) => {
-        evt.stopPropagation();
-        const el = elementById(selectedId);
-        if(!el || el.locked) return;
-        dragMode = 'rotate';
-        const p = screenToStagePoint(evt);
-        const a = Math.atan2(p.y - cy, p.x - cx);
-        dragStart = { cx, cy, startAngle: a, startRot: Number(el.rotation||0) };
-        stage.setPointerCapture(evt.pointerId);
-      });
-    }
-}
-
-  // Central style pipeline: single source of truth is state.elements (selected element only)
-  function applyStyleToSelected(stylePatch, typeFilter=null){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el) return;
-    if(typeFilter && el.type !== typeFilter) return;
-
-    // Only assign known fields (avoid accidental pollution)
-    const allowed = ['stroke','strokeWidth','strokeNone','fill','fillNone','opacity','name'];
-    for(const k of Object.keys(stylePatch||{})){
-      if(allowed.includes(k)){
-        el[k] = stylePatch[k];
-      }
-    }
-    renderAll();
-    syncPropsUI(true);
   }
-
-
-  // Commit currently selected element properties based on its type (used for commit-on-leave)
-  function commitSelectedProps(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el) return;
-
-    try{
-      if(el.type === 'rect' && typeof applyPropRectCommit === 'function'){
-        applyPropRectCommit();
-        return;
-      }
-      if(el.type === 'line' && typeof applyPropLineCommit === 'function'){
-        applyPropLineCommit();
-        return;
-      }
-      if(el.type === 'text' && typeof applyPropTextCommit === 'function'){
-        applyPropTextCommit();
-        return;
-      }
-      if(el.type === 'svg' && typeof applyPropSvgCommit === 'function'){
-        applyPropSvgCommit();
-        return;
-      }
-      // fallback: if there is a generic commit, use it
-      if(typeof applyPropsCommit === 'function'){
-        applyPropsCommit();
-      }
-    }catch(e){
-      console.warn('commitSelectedProps failed', e);
-    }
-  }
-
-
-  // Debug utility: export only the selected element (prevents truncated JSON preview)
-  function selectedElementSummary(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el) return null;
-
-    const base = {
-      id: el.id,
-      type: el.type,
-      name: el.name || "",
-      locked: !!el.locked,
-      x: el.x, y: el.y,
-      w: el.w, h: el.h,
-      rotation: el.rotation ?? 0,
-      z: (el.z ?? null)
-    };
-
-    // common paint-ish fields (only if present)
-    if('stroke' in el) base.stroke = el.stroke;
-    if('strokeWidth' in el) base.strokeWidth = el.strokeWidth;
-    if('strokeNone' in el) base.strokeNone = !!el.strokeNone;
-
-    if('fill' in el) base.fill = el.fill;
-    if('fillNone' in el) base.fillNone = !!el.fillNone;
-
-    // type-specific
-    if(el.type === 'text'){
-      base.text = el.text || "";
-      base.fontSize = el.fontSize;
-      base.fontFamily = el.fontFamily;
-      base.align = el.align;
-    }
-    if(el.type === 'svg'){
-      base.srcName = el.srcName || "";
-    }
-    if(el.type === 'line'){
-      base.x1 = el.x1; base.y1 = el.y1;
-      base.x2 = el.x2; base.y2 = el.y2;
-    }
-    if(el.type === 'rect'){
-      // nothing extra beyond paint fields
-    }
-
-    return base;
-  }
-
-  async function copySelectedElementJson(){
-    const summary = selectedElementSummary();
-    if(!summary){
-      alert('Geen element geselecteerd.');
-      return;
-    }
-    const txt = JSON.stringify(summary, null, 2);
-
-    // Also show it in the preview textarea for convenience
-    if(jsonPreview) jsonPreview.value = txt;
-
-    try{
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        await navigator.clipboard.writeText(txt);
-      } else {
-        // fallback
-        const ta = document.createElement('textarea');
-        ta.value = txt;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-      }
-    }catch(e){
-      // clipboard can fail due to permissions; still keep it in the preview box
-      console.warn('Clipboard copy failed', e);
-    }
-  }
-
 
   // -------- Toolbar actions --------
   function refreshActionButtons(){
@@ -2976,18 +1527,11 @@ function ensureLineNormalized(el){
   });
 
   // -------- Properties binding --------
-  
-function syncPropsUI(setFields=true){
-    // edit-lock: never overwrite fields while user is editing
-    if(propsEditing) setFields = false;
-
+  function syncPropsUI(setFields=true){
     const el = selectedId ? elementById(selectedId) : null;
     if(!el){
       noSelection.style.display = 'block';
       propsBox.style.display = 'none';
-      if(lineProps) lineProps.style.display = 'none';
-      if(rectProps) rectProps.style.display = 'none';
-      if(rectProps) rectProps.style.display = 'none';
       return;
     }
     noSelection.style.display = 'none';
@@ -3005,15 +1549,10 @@ function syncPropsUI(setFields=true){
     if(el.type === 'svg'){
       svgProps.style.display = 'block';
       textProps.style.display = 'none';
-      if(lineProps) lineProps.style.display = 'none';
-      if(rectProps) rectProps.style.display = 'none';
-      if(rectProps) rectProps.style.display = 'none';
       renderPaletteEditor(el);
     } else if(el.type === 'text'){
       svgProps.style.display = 'none';
       textProps.style.display = 'block';
-      if(lineProps) lineProps.style.display = 'none';
-      if(rectProps) rectProps.style.display = 'none';
       if(setFields){
         propText.value = el.text || "";
         propFont.value = el.fontFamily || "Inter";
@@ -3021,86 +1560,11 @@ function syncPropsUI(setFields=true){
         propFill.value = el.fill || "#111111";
         propAlign.value = el.textAnchor || "start";
       }
-    
-    } else if(el.type === 'rect'){
-      svgProps.style.display = 'none';
-      textProps.style.display = 'none';
-      if(lineProps) lineProps.style.display = 'none';
-      if(rectProps) rectProps.style.display = 'block';
-      if(setFields){
-        const shx = normalizeHexInput(el.stroke || "#111111") || "#111111";
-        const fhx = normalizeHexInput(el.fill || "#FFFFFF") || "#FFFFFF";
-        if(propRectStrokeColor) propRectStrokeColor.value = shx;
-        if(propRectStrokeHex){ propRectStrokeHex.value = shx; propRectStrokeHex.classList.remove('invalid'); }
-        if(propRectStrokeWidth) propRectStrokeWidth.value = (el.strokeWidth ?? 2);
-        if(propRectStrokeNone) propRectStrokeNone.checked = !!el.strokeNone;
-        if(propRectFillColor) propRectFillColor.value = fhx;
-        if(propRectFillHex){ propRectFillHex.value = fhx; propRectFillHex.classList.remove('invalid'); }
-        if(propRectFillNone) propRectFillNone.checked = !!el.fillNone;
-        // rect-no-empty sync
-        if(propRectStrokeNone && propRectFillNone && propRectStrokeNone.checked && propRectFillNone.checked){
-          propRectFillNone.checked = false;
-        }
-      }
-
-} else if(el.type === 'line'){
-      svgProps.style.display = 'none';
-      textProps.style.display = 'none';
-      if(lineProps) lineProps.style.display = 'block';
-      if(rectProps) rectProps.style.display = 'none';
-      if(setFields){
-        const hx = normalizeHexInput(el.stroke || "#111111") || "#111111";
-        if(propStrokeColor) propStrokeColor.value = hx;
-        if(propStrokeHex){ propStrokeHex.value = hx; propStrokeHex.classList.remove('invalid'); }
-        if(propStrokeWidth) propStrokeWidth.value = (el.strokeWidth ?? 2);
-        if(propRotation) propRotation.value = (el.rotation ?? 0);
-      }
     } else {
       svgProps.style.display = 'none';
       textProps.style.display = 'none';
-      if(lineProps) lineProps.style.display = 'none';
     }
   }
-
-
-
-  function syncQuickToolboxUI(setFields=true){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!quickName) return;
-    if(!el){
-      quickName.value = "";
-      quickName.placeholder = "(selecteer object)";
-      return;
-    }
-    if(setFields){
-      quickName.value = el.name || "";
-      quickName.placeholder = el.id;
-      if(el.type === 'line'){
-        if(strokeColor) strokeColor.value = el.stroke || "#111111";
-        if(strokeWidth) strokeWidth.value = el.strokeWidth || 2;
-      }
-      if(el.type === 'rect'){
-        if(rectStrokeColor) rectStrokeColor.value = el.stroke || "#111111";
-        if(rectStrokeWidth) rectStrokeWidth.value = el.strokeWidth || 2;
-        if(rectStrokeNone) rectStrokeNone.checked = !!el.strokeNone;
-        if(rectFillColor && !el.fillNone) rectFillColor.value = el.fill || "#FFFFFF";
-        if(rectFillNone) rectFillNone.checked = !!el.fillNone;
-        return;
-      }
-      // (legacy)
-      if(el.type === 'rect'){
-        if(rectStrokeColor) rectStrokeColor.value = el.stroke || "#111111";
-        if(rectStrokeWidth) rectStrokeWidth.value = el.strokeWidth || 2;
-        if(rectFillColor && !el.fillNone) rectFillColor.value = el.fill || "#FFFFFF";
-        if(rectFillNone) rectFillNone.checked = !!el.fillNone;
-      }
-      if(el.type === 'line'){
-        if(strokeColor) strokeColor.value = el.stroke || "#111111";
-        if(strokeWidth) strokeWidth.value = el.strokeWidth || 2;
-      }
-    }
-  }
-
 
   const numFields = [propX, propY, propW, propH];
   for(const f of numFields){
@@ -3113,166 +1577,6 @@ function syncPropsUI(setFields=true){
       el.w = round(clamp(parseFloat(propW.value)||2, 2, state.page.width - el.x), 2);
       el.h = round(clamp(parseFloat(propH.value)||2, 2, state.page.height - el.y), 2);
       state.meta.updatedAt = nowIso();
-      renderAll();
-    });
-  }
-
-
-  // Toolbox quick rename
-  if(quickName){
-    quickName.addEventListener('input', () => {
-      const el = selectedId ? elementById(selectedId) : null;
-      if(!el) return;
-      el.name = quickName.value;
-      try{ propName.value = el.name || ""; }catch(_){}
-      state.meta.updatedAt = nowIso();
-      syncJsonPreview();
-    });
-  }
-
-  // Toolbox stroke edits for selected line
-  function applyStrokeToSelectedLine(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el || el.type !== 'line') return;
-    el.stroke = strokeColor?.value || el.stroke || "#111111";
-    el.strokeWidth = Number(strokeWidth?.value || el.strokeWidth || 2);
-    state.meta.updatedAt = nowIso();
-    renderAll();
-  }
-  if(strokeColor) strokeColor.addEventListener('input', applyStrokeToSelectedLine);
-  if(strokeWidth) strokeWidth.addEventListener('input', applyStrokeToSelectedLine);
-  // Quick toolbox: apply rect paint edits to selected rect (parity with line)
-  function applyPaintToSelectedRect(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el || el.type !== 'rect') return;
-
-    // Read from rect tool controls (these also serve as quick-edit inputs)
-    const strokeHex = normalizeHexInput(rectStrokeColor?.value) || el.stroke || "#111111";
-    const fillHex   = normalizeHexInput(rectFillColor?.value) || el.fill || "#FFFFFF";
-    const sw = Math.max(0.05, Math.min(50, Number(rectStrokeWidth?.value || el.strokeWidth || 2)));
-
-    const strokeNone = !!rectStrokeNone?.checked;
-    const fillNone   = !!rectFillNone?.checked;
-
-    // Prevent invisible rectangle
-    const safeFillNone = fillNone && !strokeNone;
-    setRectPaintProps(el, {
-      stroke: strokeHex,
-      strokeWidth: sw,
-      strokeNone: strokeNone,
-      fill: fillHex,
-      fillNone: safeFillNone
-    }, "Rechthoek stijl", false);
-  }
-
-  if(rectStrokeColor) rectStrokeColor.addEventListener('input', applyPaintToSelectedRect);
-  if(rectStrokeWidth) rectStrokeWidth.addEventListener('input', applyPaintToSelectedRect);
-  if(rectFillColor) rectFillColor.addEventListener('input', applyPaintToSelectedRect);
-  if(rectStrokeNone) rectStrokeNone.addEventListener('change', () => {
-    if(rectStrokeNone.checked && rectFillNone) rectFillNone.checked = false;
-    applyStyleToSelected({ stroke: hx }, 'rect');
-  });
-  if(rectFillNone) rectFillNone.addEventListener('change', () => {
-    if(rectFillNone.checked && rectStrokeNone) rectStrokeNone.checked = false;
-    applyStyleToSelected({ stroke: hx }, 'rect');
-  });
-
-
-
-
-  // Properties panel: stroke edits for selected line (parity with other elements)
-  function applyPropStrokePreview(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el || el.type !== 'line') return;
-    const hx = normalizeHexInput(propStrokeHex?.value || propStrokeColor?.value) || null;
-    const w  = propStrokeWidth?.value;
-    if(propStrokeHex){
-      if(hx){ propStrokeHex.classList.remove('invalid'); }
-      else { propStrokeHex.classList.add('invalid'); return; }
-    }
-    setLineStrokeProps(el, {hex: hx, width: w}, "Stroke aangepast", false);
-  }
-  function applyPropStrokeCommit(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el || el.type !== 'line') return;
-    const hx = normalizeHexInput(propStrokeHex?.value || propStrokeColor?.value) || null;
-    const w  = propStrokeWidth?.value;
-    if(propStrokeHex){
-      if(hx){ propStrokeHex.classList.remove('invalid'); }
-      else { propStrokeHex.classList.add('invalid'); return; }
-    }
-    setLineStrokeProps(el, {hex: hx, width: w}, "Stroke aangepast", true);
-  }
-
-  if(propStrokeColor){
-    propStrokeColor.addEventListener('input', () => {
-      if(propStrokeHex){
-        const hx = normalizeHexInput(propStrokeColor.value);
-        if(hx){ propStrokeHex.value = hx; propStrokeHex.classList.remove('invalid'); }
-      }
-      applyPropStrokePreview();
-    });
-    propStrokeColor.addEventListener('change', applyPropStrokeCommit);
-  }
-
-  if(propStrokeHex){
-    propStrokeHex.addEventListener('input', () => {
-      const hx = normalizeHexInput(propStrokeHex.value);
-      if(hx){
-        propStrokeHex.classList.remove('invalid');
-        if(propStrokeColor) propStrokeColor.value = hx;
-        applyPropStrokePreview();
-      } else {
-        propStrokeHex.classList.add('invalid');
-      }
-    });
-    propStrokeHex.addEventListener('change', applyPropStrokeCommit);
-    propStrokeHex.addEventListener('keydown', (e) => {
-      if(e.key === 'Enter'){
-        e.preventDefault();
-        applyPropStrokeCommit();
-      }
-    });
-    propStrokeHex.addEventListener('blur', applyPropStrokeCommit);
-  }
-
-  if(propStrokeWidth){
-    propStrokeWidth.addEventListener('input', applyPropStrokePreview);
-    propStrokeWidth.addEventListener('change', applyPropStrokeCommit);
-  }
-
-  function applyPropRotationPreview(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el || el.type !== 'line') return;
-    setLineRotationProps(el, propRotation?.value, "Rotatie aangepast", false);
-  }
-  function applyPropRotationCommit(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el || el.type !== 'line') return;
-    setLineRotationProps(el, propRotation?.value, "Rotatie aangepast", true);
-    renderAll();
-  }
-
-  if(propRotation){
-    propRotation.addEventListener('input', applyPropRotationPreview);
-    propRotation.addEventListener('change', applyPropRotationCommit);
-    propRotation.addEventListener('keydown', (e) => {
-      if(e.key === 'Enter'){ e.preventDefault(); applyPropRotationCommit(); }
-    });
-  }
-  if(rotLeftBtn){
-    rotLeftBtn.addEventListener('click', () => {
-      const el = selectedId ? elementById(selectedId) : null;
-      if(!el || el.type !== 'line') return;
-      setLineRotationProps(el, Number(el.rotation||0) - 15, "Geroteerd", true);
-      renderAll();
-    });
-  }
-  if(rotRightBtn){
-    rotRightBtn.addEventListener('click', () => {
-      const el = selectedId ? elementById(selectedId) : null;
-      if(!el || el.type !== 'line') return;
-      setLineRotationProps(el, Number(el.rotation||0) + 15, "Geroteerd", true);
       renderAll();
     });
   }
@@ -3696,21 +2000,7 @@ function syncPropsUI(setFields=true){
     toast("SVG geëxporteerd.");
   });
 
-  
-
-  function exportSelectedElementToSvg(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el){ toast("Selecteer eerst een element."); return null; }
-    const oldElements = state.elements;
-    try{
-      state.elements = [el];
-      return exportCanvasToSvg();
-    } finally {
-      state.elements = oldElements;
-    }
-  }
-
-function exportCanvasToSvg(){
+  function exportCanvasToSvg(){
     sortElements();
     const xmlns = "http://www.w3.org/2000/svg";
     const doc = document.implementation.createDocument(xmlns, "svg", null);
@@ -3882,34 +2172,6 @@ function exportCanvasToSvg(){
       } else if(el.type === "text"){
         importTextIntoGroup(el, g);
       }
-      else if(el.type === "rect"){
-        const r = doc.createElementNS(xmlns, "rect");
-        r.setAttribute("x", "0");
-        r.setAttribute("y", "0");
-        r.setAttribute("width", String(el.w));
-        r.setAttribute("height", String(el.h));
-        const strokeNone = !!el.strokeNone;
-        const fillNone = !!el.fillNone;
-        r.setAttribute("stroke", strokeNone ? "none" : (el.stroke || "#111111"));
-        r.setAttribute("stroke-width", String(el.strokeWidth ?? 1));
-        r.setAttribute("fill", fillNone ? "none" : (el.fill || "#ffffff"));
-        r.setAttribute("vector-effect","non-scaling-stroke");
-        g.appendChild(r);
-      } else if(el.type === "line"){
-        const ln = doc.createElementNS(xmlns, "line");
-        ln.setAttribute("x1", String(el.x1 ?? 0));
-        ln.setAttribute("y1", String(el.y1 ?? 0));
-        ln.setAttribute("x2", String(el.x2 ?? (el.w ?? 0)));
-        ln.setAttribute("y2", String(el.y2 ?? (el.h ?? 0)));
-        ln.setAttribute("stroke", (el.stroke || "#111111"));
-        ln.setAttribute("stroke-width", String(el.strokeWidth ?? 1));
-        ln.setAttribute("fill", "none");
-        ln.setAttribute("vector-effect","non-scaling-stroke");
-        if(el.strokeLineCap) ln.setAttribute("stroke-linecap", el.strokeLineCap);
-        if(el.strokeLineJoin) ln.setAttribute("stroke-linejoin", el.strokeLineJoin);
-        if(el.strokeDashArray) ln.setAttribute("stroke-dasharray", el.strokeDashArray);
-        g.appendChild(ln);
-      }
 
       root.appendChild(g);
     }
@@ -3919,19 +2181,7 @@ function exportCanvasToSvg(){
 
 
   // -------- Element package export/import --------
-  
-  if(exportElementSvgBtn){
-    exportElementSvgBtn.addEventListener('click', () => {
-      const el = selectedId ? elementById(selectedId) : null;
-      if(!el){ toast("Selecteer eerst een element."); return; }
-      const svgText = exportSelectedElementToSvg();
-      if(!svgText) return;
-      download(`element_${(el.name||el.id).replace(/\s+/g,'_')}.svg`, svgText, "image/svg+xml");
-      toast("Element SVG geëxporteerd.");
-    });
-  }
-
-exportElementBtn.addEventListener('click', () => {
+  exportElementBtn.addEventListener('click', () => {
     const el = selectedId ? elementById(selectedId) : null;
     if(!el){ toast("Selecteer eerst een element."); return; }
     const pkg = buildElementPackage(el);
@@ -3969,8 +2219,7 @@ exportElementBtn.addEventListener('click', () => {
       assets: {},
       element: JSON.parse(JSON.stringify(el))
     };
-
-if(el.type === 'svg'){
+    if(el.type === 'svg'){
       const a = state.assets[el.assetId];
       if(a){
         // hash for dedupe
@@ -4162,223 +2411,6 @@ exportBtn.addEventListener('click', () => {
   renderAll();
   toast("Laad een SVG asset in (links) en plaats 'm op de pagina.");
 })();
-  // -------- Rect properties (stroke/fill) --------
-  function setRectPaintProps(el, {stroke, strokeWidth, strokeNone, fill, fillNone}, label, commitHistory=true){
-    if(!el || el.type !== 'rect') return;
-    if(commitHistory) pushHistory(label);
-    if(stroke !== undefined) el.stroke = stroke;
-    if(strokeWidth !== undefined) el.strokeWidth = strokeWidth;
-    if(strokeNone !== undefined) el.strokeNone = !!strokeNone;
-    if(fill !== undefined) el.fill = fill;
-    if(fillNone !== undefined) el.fillNone = !!fillNone;
-
-    // invariant: rect must be visible (either stroke or fill)
-    if(el.strokeNone && el.fillNone){
-      // prefer keeping fill when stroke is turned off; force fill back on
-      el.fillNone = false;
-    }
-
-    // sync UI (rect)
-    try{
-      const shx = normalizeHexInput(el.stroke || '#111111') || '#111111';
-      const fhx = normalizeHexInput(el.fill || '#FFFFFF') || '#FFFFFF';
-      if(propRectStrokeColor) propRectStrokeColor.value = shx;
-      if(propRectStrokeHex){ propRectStrokeHex.value = shx; propRectStrokeHex.classList.remove('invalid'); }
-      if(propRectStrokeWidth) propRectStrokeWidth.value = (el.strokeWidth ?? 2);
-      if(propRectStrokeNone) propRectStrokeNone.checked = !!el.strokeNone;
-      if(propRectFillColor) propRectFillColor.value = fhx;
-      if(propRectFillHex){ propRectFillHex.value = fhx; propRectFillHex.classList.remove('invalid'); }
-      if(propRectFillNone) propRectFillNone.checked = !!el.fillNone;
-
-      // toolbox rect controls (also quick-edit)
-      if(rectStrokeColor) rectStrokeColor.value = shx;
-      if(rectStrokeWidth) rectStrokeWidth.value = (el.strokeWidth ?? 2);
-      if(rectStrokeNone) rectStrokeNone.checked = !!el.strokeNone;
-      if(rectFillColor) rectFillColor.value = fhx;
-      if(rectFillNone) rectFillNone.checked = !!el.fillNone;
-    }catch(_){ }
-
-    state.meta.updatedAt = nowIso();
-    renderAll();
-  }
-
-  function applyPropRectPreview(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el || el.type !== 'rect') return;
-    const strokeHex = normalizeHexInput(propRectStrokeHex?.value) || (el.stroke || '#111111');
-    const fillHex = normalizeHexInput(propRectFillHex?.value) || (el.fill || '#FFFFFF');
-    const sw = Math.max(0.05, Math.min(50, Number(propRectStrokeWidth?.value || (el.strokeWidth ?? 2))));
-    // preview without history
-    const strokeNone = !!propRectStrokeNone?.checked;
-    const fillNone = !!propRectFillNone?.checked;
-    const safeFillNone = fillNone && !strokeNone;
-    setRectPaintProps(el, {
-      stroke: strokeHex,
-      strokeWidth: sw,
-      strokeNone: strokeNone,
-      fill: fillHex,
-      fillNone: safeFillNone
-    }, "Rechthoek stijl", false);
-  }
-
-  function applyPropRectCommit(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el || el.type !== 'rect') return;
-    const strokeHex = normalizeHexInput(propRectStrokeHex?.value) || (el.stroke || '#111111');
-    const fillHex = normalizeHexInput(propRectFillHex?.value) || (el.fill || '#FFFFFF');
-    const sw = Math.max(0.05, Math.min(50, Number(propRectStrokeWidth?.value || (el.strokeWidth ?? 2))));
-    const strokeNone = !!propRectStrokeNone?.checked;
-    const fillNone = !!propRectFillNone?.checked;
-    const safeFillNone = fillNone && !strokeNone;
-    setRectPaintProps(el, {
-      stroke: strokeHex,
-      strokeWidth: sw,
-      strokeNone: strokeNone,
-      fill: fillHex,
-      fillNone: safeFillNone
-    }, "Rechthoek stijl", true);
-  }
-
-  if(propRectStrokeColor){
-    propRectStrokeColor.addEventListener('input', () => {
-      if(propRectStrokeHex) propRectStrokeHex.value = propRectStrokeColor.value;
-      applyPropRectPreview();
-    });
-    propRectStrokeColor.addEventListener('change', () => {
-      if(propRectStrokeHex) propRectStrokeHex.value = propRectStrokeColor.value;
-      applyPropRectCommit();
-    });
-  }
-  if(propRectStrokeHex){
-    propRectStrokeHex.addEventListener('input', applyPropRectPreview);
-    propRectStrokeHex.addEventListener('change', applyPropRectCommit);
-    propRectStrokeHex.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyPropRectCommit(); }});
-  }
-  if(propRectStrokeWidth){
-    propRectStrokeWidth.addEventListener('input', applyPropRectPreview);
-    propRectStrokeWidth.addEventListener('change', applyPropRectCommit);
-  }
-  if(propRectStrokeNone){
-    propRectStrokeNone.addEventListener('change', () => {
-      // rect-no-empty: prevent strokeNone + fillNone simultaneously
-      if(propRectStrokeNone.checked && propRectFillNone) propRectFillNone.checked = false;
-      applyPropRectCommit();
-    });
-  }
-  if(propRectFillColor){
-    propRectFillColor.addEventListener('input', () => {
-      if(propRectFillHex) propRectFillHex.value = propRectFillColor.value;
-      applyPropRectPreview();
-    });
-    propRectFillColor.addEventListener('change', () => {
-      if(propRectFillHex) propRectFillHex.value = propRectFillColor.value;
-      applyPropRectCommit();
-    });
-  }
-  if(propRectFillHex){
-    propRectFillHex.addEventListener('input', applyPropRectPreview);
-    propRectFillHex.addEventListener('change', applyPropRectCommit);
-    propRectFillHex.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyPropRectCommit(); }});
-  }
-  if(propRectFillNone){
-    propRectFillNone.addEventListener('change', () => {
-      // rect-no-empty: prevent strokeNone + fillNone simultaneously
-      if(propRectFillNone.checked && propRectStrokeNone) propRectStrokeNone.checked = false;
-      applyPropRectCommit();
-    });
-  }
-
-
 </script>
 </body>
 </html>
-  function setRectPaintProps(el, {stroke, strokeWidth, strokeNone, fill, fillNone}, label, commitHistory=true){
-    if(!el || el.type !== 'rect') return;
-    if(commitHistory) pushHistory(label);
-    if(stroke !== undefined) el.stroke = stroke;
-    if(strokeWidth !== undefined) el.strokeWidth = strokeWidth;
-    if(strokeNone !== undefined) el.strokeNone = !!strokeNone;
-    if(fill !== undefined) el.fill = fill;
-    if(fillNone !== undefined) el.fillNone = !!fillNone;
-    state.meta.updatedAt = nowIso();
-
-    const g = selectedId ? itemsG.querySelector(`.stage-item[data-id="${selectedId}"]`) : null;
-    if(g){
-      const r = g.querySelector('rect');
-      if(r){
-        r.setAttribute('stroke', el.strokeNone ? 'none' : (el.stroke || '#111111'));
-        r.setAttribute('stroke-width', el.strokeNone ? '0' : (el.strokeWidth ?? 2));
-        r.setAttribute('fill', el.fillNone ? 'none' : (el.fill || '#FFFFFF'));
-      }
-      g.setAttribute('transform', itemTransform(el));
-    }
-    renderSelectionOverlay();
-    try{ syncJsonPreview(); }catch(_){}
-  }
-
-  function normalizeMaybeHex(v, fallback){
-    const hx = normalizeHexInput(v);
-    return hx || fallback;
-  }
-
-  function applyPropRectPreview(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el || el.type !== 'rect') return;
-    const strokeHex = normalizeMaybeHex(propRectStrokeHex?.value, el.stroke || '#111111');
-    const fillHex = normalizeMaybeHex(propRectFillHex?.value, el.fill || '#FFFFFF');
-    const sw = Math.max(0.05, Math.min(50, Number(propRectStrokeWidth?.value || (el.strokeWidth ?? 2))));
-    setRectPaintProps(el, {
-      stroke: strokeHex,
-      strokeWidth: sw,
-      strokeNone: !!propRectStrokeNone?.checked,
-      fill: fillHex,
-      fillNone: !!propRectFillNone?.checked
-    }, "Rechthoek stijl", false);
-  }
-
-  function applyPropRectCommit(){
-    const el = selectedId ? elementById(selectedId) : null;
-    if(!el || el.type !== 'rect') return;
-    const strokeHex = normalizeMaybeHex(propRectStrokeHex?.value, el.stroke || '#111111');
-    const fillHex = normalizeMaybeHex(propRectFillHex?.value, el.fill || '#FFFFFF');
-    const sw = Math.max(0.05, Math.min(50, Number(propRectStrokeWidth?.value || (el.strokeWidth ?? 2))));
-    setRectPaintProps(el, {
-      stroke: strokeHex,
-      strokeWidth: sw,
-      strokeNone: !!propRectStrokeNone?.checked,
-      fill: fillHex,
-      fillNone: !!propRectFillNone?.checked
-    }, "Rechthoek stijl", true);
-    renderAll();
-  }
-
-  if(propRectStrokeColor){
-    propRectStrokeColor.addEventListener('input', () => { if(propRectStrokeHex) propRectStrokeHex.value = propRectStrokeColor.value; applyPropRectPreview(); });
-    propRectStrokeColor.addEventListener('change', () => { if(propRectStrokeHex) propRectStrokeHex.value = propRectStrokeColor.value; applyPropRectCommit(); });
-  }
-  if(propRectStrokeHex){
-    propRectStrokeHex.addEventListener('input', applyPropRectPreview);
-    propRectStrokeHex.addEventListener('change', applyPropRectCommit);
-    propRectStrokeHex.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyPropRectCommit(); }});
-  }
-  if(propRectStrokeWidth){
-    propRectStrokeWidth.addEventListener('input', applyPropRectPreview);
-    propRectStrokeWidth.addEventListener('change', applyPropRectCommit);
-  }
-  if(propRectStrokeNone){
-    propRectStrokeNone.addEventListener('change', applyPropRectCommit);
-  }
-  if(propRectFillColor){
-    propRectFillColor.addEventListener('input', () => { if(propRectFillHex) propRectFillHex.value = propRectFillColor.value; applyPropRectPreview(); });
-    propRectFillColor.addEventListener('change', () => { if(propRectFillHex) propRectFillHex.value = propRectFillColor.value; applyPropRectCommit(); });
-  }
-  if(propRectFillHex){
-    propRectFillHex.addEventListener('input', applyPropRectPreview);
-    propRectFillHex.addEventListener('change', applyPropRectCommit);
-    propRectFillHex.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyPropRectCommit(); }});
-  }
-  if(propRectFillNone){
-    propRectFillNone.addEventListener('change', applyPropRectCommit);
-  }
-
-

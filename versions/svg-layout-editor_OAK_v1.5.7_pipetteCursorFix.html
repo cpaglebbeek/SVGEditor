@@ -3,8 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="robots" content="noindex,nofollow" />
-  <title>META Layout Editor (SVG + JSON) — v1.5.5 PROD</title>
+  <title>META Layout Editor (SVG + JSON) — v1.5.2</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -421,6 +420,14 @@ main{
   .snoopSwatch{width:22px; height:22px; border-radius:6px; border:1px solid rgba(0,0,0,.18); background:#fff; display:inline-block;}
   .snoopToggle{display:flex; align-items:center; gap:6px; padding:4px 6px; border:1px solid rgba(0,0,0,.12); border-radius:8px; background:rgba(255,255,255,.35);}
   .snoopToggle input{transform:translateY(1px);}
+
+  /* pipette cursor */
+  
+
+  /* pipette cursor */
+  #stage.pipetteCursor { cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8cGF0aCBkPSJNMjAuNyAzLjNhMi41IDIuNSAwIDAgMSAzLjUgMGwxLjAgMS4wYTIuNSAyLjUgMCAwIDEgMCAzLjVsLTYuMSA2LjEgMS42IDEuNmExIDEgMCAwIDEgMCAxLjRsLTEuOCAxLjhhMSAxIDAgMCAxLTEuNCAwbC0xLjYtMS42LTIuNCAyLjRjLS41LjUtLjggMS4xLS45IDEuOGwtLjYgNC4wYy0uMS44LS43IDEuNC0xLjUgMS41bC00LjAuNmMtLjcuMS0xLjMuNC0xLjguOUwzLjUgMjguNWExIDEgMCAwIDEtMS40LTEuNGwyLjQtMi40Yy41LS41LjgtMS4xLjktMS44bC42LTQuMGMuMS0uOC43LTEuNCAxLjUtMS41bDQuMC0uNmMuNy0uMSAxLjMtLjQgMS44LS45bDIuNC0yLjQtMS42LTEuNmExIDEgMCAwIDEgMC0xLjRsMS44LTEuOGExIDEgMCAwIDEgMS40IDBsMS42IDEuNiA2LjEtNi4xYTIuNSAyLjUgMCAwIDEgMC0zLjV6IiBmaWxsPSIjMTExIi8+CiAgPHBhdGggZD0iTTYuOSAyMy40bDIuMC0uMy4zLTIuMC0yLjAuMy0uMyAyLjB6IiBmaWxsPSIjM2I4MmY2Ii8+Cjwvc3ZnPg==') 0 31, crosshair; }
+  #stage.pipetteCursor * { cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8cGF0aCBkPSJNMjAuNyAzLjNhMi41IDIuNSAwIDAgMSAzLjUgMGwxLjAgMS4wYTIuNSAyLjUgMCAwIDEgMCAzLjVsLTYuMSA2LjEgMS42IDEuNmExIDEgMCAwIDEgMCAxLjRsLTEuOCAxLjhhMSAxIDAgMCAxLTEuNCAwbC0xLjYtMS42LTIuNCAyLjRjLS41LjUtLjggMS4xLS45IDEuOGwtLjYgNC4wYy0uMS44LS43IDEuNC0xLjUgMS41bC00LjAuNmMtLjcuMS0xLjMuNC0xLjguOUwzLjUgMjguNWExIDEgMCAwIDEtMS40LTEuNGwyLjQtMi40Yy41LS41LjgtMS4xLjktMS44bC42LTQuMGMuMS0uOC43LTEuNCAxLjUtMS41bDQuMC0uNmMuNy0uMSAxLjMtLjQgMS44LS45bDIuNC0yLjQtMS42LTEuNmExIDEgMCAwIDEgMC0xLjRsMS44LTEuOGExIDEgMCAwIDEgMS40IDBsMS42IDEuNiA2LjEtNi4xYTIuNSAyLjUgMCAwIDEgMC0zLjV6IiBmaWxsPSIjMTExIi8+CiAgPHBhdGggZD0iTTYuOSAyMy40bDIuMC0uMy4zLTIuMC0yLjAuMy0uMyAyLjB6IiBmaWxsPSIjM2I4MmY2Ii8+Cjwvc3ZnPg==') 0 31, crosshair; }
+
 </style>
 </head>
 <body>
@@ -2029,8 +2036,20 @@ function normalizeHexInput(input){
     }
   }
 
-  function bmpSnoopSetEnabled(on){
+    function bmpSnoopSetCursor(on){
+    // Apply to stage + document body so it stays consistent across overlays
+    if(on){
+      document.body.classList.add('pipetteCursor');
+      stage.classList.add('pipetteCursor');
+    }else{
+      document.body.classList.remove('pipetteCursor');
+      stage.classList.remove('pipetteCursor');
+    }
+  }
+
+function bmpSnoopSetEnabled(on){
     bmpSnoopState.enabled = !!on;
+    bmpSnoopSetCursor(bmpSnoopState.enabled);
     bmpSnoopState.hover = null;
     bmpSnoopBox.style.display = bmpSnoopState.enabled ? '' : 'none';
     if(bmpSnoopBtn) bmpSnoopBtn.classList.toggle('active', bmpSnoopState.enabled);

@@ -3,8 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="robots" content="noindex,nofollow" />
-  <title>META Layout Editor (SVG + JSON) — v1.5.5 PROD</title>
+  <title>META Layout Editor (SVG + JSON) — v1.5.2</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -501,20 +500,7 @@ main{
 
         <button id="lineToolBtn" class="secondary" title="Teken een rechte lijn">／ Lijn</button>
 
-        
-          
-  <button class="secondary" id="bmpSnoopBtn" title="Pipet: lees kleur uit zichtbare pixels (bitmap)">🧪 Color snoop</button>
-  <div class="toolGroup" id="bmpSnoopBox" style="display:none;" title="Bitmap color snoop">
-    <div class="row" style="gap:8px; align-items:center;">
-      <span class="lbl" style="min-width:64px;">Kleur</span>
-      <span class="snoopSwatch" id="bmpSnoopSwatch" title="Hover om te meten, klik om vast te zetten"></span>
-      <span class="mono small" id="bmpSnoopHex">—</span>
-      <label class="snoopToggle small" title="Als aan: randkleur heeft voorrang wanneer je op de rand zit">
-        <input type="checkbox" id="bmpSnoopStrokeFirst" checked> stroke-first
-      </label>
-    </div>
-    
-<div class="toolGroup" id="lineToolControls" title="Instellingen voor lijn">
+        <div class="toolGroup" id="lineToolControls" title="Instellingen voor lijn">
           <div class="row">
             <label class="lbl" for="strokeColor">Kleur</label>
             <input id="strokeColor" type="color" value="#111111" />
@@ -534,7 +520,18 @@ main{
             <input id="rectStrokeColor" type="color" value="#111111" />
             <input id="rectStrokeHexTool" type="text" value="#111111" style="width:92px;" />
           </div>
-<div class="small" style="opacity:.85;">Tip: zet zoom hoger voor preciezere pipet. Klik om vast te zetten.</div>
+          
+  <button class="secondary" id="bmpSnoopBtn" title="Pipet: lees kleur uit zichtbare pixels (bitmap)">🧪 Color snoop</button>
+  <div class="toolGroup" id="bmpSnoopBox" style="display:none;" title="Bitmap color snoop">
+    <div class="row" style="gap:8px; align-items:center;">
+      <span class="lbl" style="min-width:64px;">Kleur</span>
+      <span class="snoopSwatch" id="bmpSnoopSwatch" title="Hover om te meten, klik om vast te zetten"></span>
+      <span class="mono small" id="bmpSnoopHex">—</span>
+      <label class="snoopToggle small" title="Als aan: randkleur heeft voorrang wanneer je op de rand zit">
+        <input type="checkbox" id="bmpSnoopStrokeFirst" checked> stroke-first
+      </label>
+    </div>
+    <div class="small" style="opacity:.85;">Tip: zet zoom hoger voor preciezere pipet. Klik om vast te zetten.</div>
   </div>
 <div class="row">
             <label class="lbl" for="rectStrokeWidth">Lijndikte</label>
@@ -1940,57 +1937,6 @@ function normalizeHexInput(input){
     rebuildTimer:null
   };
 
-  const bmpSnoopPreview = { id:null, prop:null, orig:null };
-
-  function bmpSnoopGetPreviewTarget(){
-    const el = (typeof selectedId !== 'undefined' && selectedId) ? elementById(selectedId) : null;
-    if(!el) return null;
-    if(el.locked) return null;
-    if(el.type === 'line') return {el, prop:'stroke'};
-    if(el.type === 'text') return {el, prop:'fill'};
-    return null;
-  }
-
-  function bmpSnoopPreviewApply(hx){
-    const t = bmpSnoopGetPreviewTarget();
-    if(!t) return;
-    if(bmpSnoopPreview.id !== t.el.id || bmpSnoopPreview.prop !== t.prop){
-      // switching target: restore previous preview first
-      bmpSnoopPreviewClear();
-      bmpSnoopPreview.id = t.el.id;
-      bmpSnoopPreview.prop = t.prop;
-      bmpSnoopPreview.orig = (t.el[t.prop] ?? null);
-    }
-    if(t.el[t.prop] !== hx){
-      t.el[t.prop] = hx;
-      state.meta.updatedAt = nowIso();
-      renderAll();
-    }
-  }
-
-  function bmpSnoopPreviewClear(){
-    if(!bmpSnoopPreview.id) return;
-    const el = elementById(bmpSnoopPreview.id);
-    if(el && !el.locked && bmpSnoopPreview.prop){
-      el[bmpSnoopPreview.prop] = bmpSnoopPreview.orig;
-      state.meta.updatedAt = nowIso();
-      renderAll();
-    }
-    bmpSnoopPreview.id = null;
-    bmpSnoopPreview.prop = null;
-    bmpSnoopPreview.orig = null;
-  }
-
-  function bmpSnoopApplyLockedToTarget(hx){
-    const t = bmpSnoopGetPreviewTarget();
-    if(!t) return false;
-    pushHistory(`Kleur snoop toegepast op ${t.el.type}`);
-    t.el[t.prop] = hx;
-    state.meta.updatedAt = nowIso();
-    renderAll();
-    return true;
-  }
-
   function bmpSnoopLoad(){
     try{
       const l = localStorage.getItem('bmpSnoop.locked');
@@ -2042,9 +1988,6 @@ function normalizeHexInput(input){
       toast('Color snoop uit.');
     }
     bmpSnoopRenderHover();
-      // Live preview for selected line/text
-      if(hx) bmpSnoopPreviewApply(hx); else bmpSnoopPreviewClear();
-    if(!bmpSnoopState.enabled) bmpSnoopPreviewClear();
   }
 
   function bmpSnoopInvalidate(reason){
@@ -2171,10 +2114,7 @@ function normalizeHexInput(input){
     const rect = stage.getBoundingClientRect();
     const cx = evt.clientX, cy = evt.clientY;
     if(cx < rect.left || cx > rect.right || cy < rect.top || cy > rect.bottom){
-      if(bmpSnoopState.hover !== null){ bmpSnoopState.hover = null; bmpSnoopRenderHover();
-      // Live preview for selected line/text
-      if(hx) bmpSnoopPreviewApply(hx); else bmpSnoopPreviewClear();
-    if(!bmpSnoopState.enabled) bmpSnoopPreviewClear(); }
+      if(bmpSnoopState.hover !== null){ bmpSnoopState.hover = null; bmpSnoopRenderHover(); }
       return;
     }
     const dpr = bmpSnoopState.dpr || 1;
@@ -2185,9 +2125,6 @@ function normalizeHexInput(input){
     if(hx !== bmpSnoopState.hover){
       bmpSnoopState.hover = hx;
       bmpSnoopRenderHover();
-      // Live preview for selected line/text
-      if(hx) bmpSnoopPreviewApply(hx); else bmpSnoopPreviewClear();
-    if(!bmpSnoopState.enabled) bmpSnoopPreviewClear();
     }
   }
 
@@ -2199,13 +2136,10 @@ function normalizeHexInput(input){
     if(hx){
       bmpSnoopState.locked = hx;
       bmpSnoopSave();
-      // Apply locked color to selected line/text (commit)
-      bmpSnoopApplyLockedToTarget(hx);
       toast(`Kleur vastgezet: ${hx}`);
     }else{
       toast('Geen kleur gevonden op dit punt.');
     }
-    bmpSnoopPreviewClear();
     bmpSnoopSetEnabled(false);
   }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>META Layout Editor (SVG + JSON) — v1.1.1</title>
+  <title>META Layout Editor (SVG + JSON) — v0.6.4 (Phase D: kleurbronnen read-only)</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -71,15 +71,7 @@
     button.danger{ background:rgba(255,106,106,.12); border-color:rgba(255,106,106,.35); }
     button.ok{ background:rgba(98,217,139,.12); border-color:rgba(98,217,139,.35); }
     button:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
-    
-    button.active{
-      border-color: rgba(122,162,255,.75);
-      box-shadow: 0 0 0 2px rgba(122,162,255,.14) inset;
-    }
-    #stage.stagePan{ cursor: grab; }
-    #stage.stagePan:active{ cursor: grabbing; }
-    #stage.stageMagnifier{ cursor: zoom-in; }
-main{
+    main{
       height:calc(100vh - 54px);
       display:grid;
       grid-template-columns: 320px 1fr 340px;
@@ -282,90 +274,7 @@ main{
       background:#000;
       padding:0;
     }
-
-    .modeRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}
-    .modeLbl{font-size:12px;color:var(--muted)}
-    .seg{display:flex;gap:6px}
-    .segBtn{appearance:none;border:1px solid var(--line);background:var(--btn);color:var(--text);padding:6px 10px;border-radius:999px;font-size:12px;cursor:pointer;user-select:none}
-    .segBtn:hover{background:var(--btn2)}
-    .segBtn.active{border-color:rgba(122,162,255,.7);box-shadow:0 0 0 2px rgba(122,162,255,.15) inset}
-    .stageCanvas{cursor:grab}
-    .stageCanvas.dragging{cursor:grabbing}
-
-  
-    /* Toolbox-only warm soft-yellow theme (scoped) */
-    .canvasToolbar{
-      background: rgba(52, 46, 18, .78);
-      border-color: rgba(255, 220, 120, .28);
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
-    }
-    .canvasToolbar, .canvasToolbar *{
-      color: rgba(255, 245, 220, .92);
-    }
-    .canvasToolbar .tbDrag{ color: rgba(255, 245, 220, .95); }
-    .canvasToolbar .modeLbl{ color: rgba(255, 235, 190, .85); }
-    .canvasToolbar .segBtn,
-    .canvasToolbar button.btn,
-    .canvasToolbar button.toolBtn,
-    .canvasToolbar button{
-      background: rgba(255, 235, 170, .10);
-      border-color: rgba(255, 220, 120, .24);
-    }
-    .canvasToolbar .segBtn:hover,
-    .canvasToolbar button.btn:hover,
-    .canvasToolbar button.toolBtn:hover,
-    .canvasToolbar button:hover{
-      background: rgba(255, 235, 170, .16);
-      border-color: rgba(255, 220, 120, .32);
-    }
-    .canvasToolbar .segBtn.active{
-      border-color: rgba(255, 220, 120, .62);
-      box-shadow: 0 0 0 2px rgba(255, 220, 120, .16) inset;
-    }
-    .canvasToolbar input,
-    .canvasToolbar select,
-    .canvasToolbar textarea{
-      background: rgba(255, 235, 170, .08);
-      border-color: rgba(255, 220, 120, .22);
-      color: rgba(255, 245, 220, .95);
-    }
-    .canvasToolbar input::placeholder,
-    .canvasToolbar textarea::placeholder{
-      color: rgba(255, 235, 190, .60);
-    }
-
-  
-    /* Toolbox collapse/mini (scoped to .canvasToolbar only) */
-    .canvasToolbar .tbDrag{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .canvasToolbar .tbTitle{display:inline-flex;align-items:center;gap:8px}
-    .canvasToolbar .tbIconBtn{
-      appearance:none;
-      border:1px solid rgba(255, 220, 120, .24);
-      background: rgba(255, 235, 170, .10);
-      color: inherit;
-      border-radius:10px;
-      padding:4px 8px;
-      font-size:12px;
-      cursor:pointer;
-    }
-    .canvasToolbar .tbIconBtn:hover{background:rgba(255,235,170,.16);border-color:rgba(255,220,120,.32)}
-    .canvasToolbar.collapsed{width:auto;min-width:0;max-width:none;padding:10px}
-    .canvasToolbar.collapsed > :not(#tbMini):not(.tbDrag){display:none !important}
-    .canvasToolbar .tbMini{display:none;align-items:center;justify-content:center}
-    .canvasToolbar.collapsed .tbMini{display:flex}
-    .canvasToolbar .tbMiniBtn{
-      appearance:none;
-      border:1px solid rgba(255, 220, 120, .24);
-      background: rgba(255, 235, 170, .10);
-      color: inherit;
-      border-radius:999px;
-      padding:8px 10px;
-      font-size:14px;
-      cursor:pointer;
-    }
-    .canvasToolbar .tbMiniBtn:hover{background:rgba(255,235,170,.16);border-color:rgba(255,220,120,.32)}
-
-  </style>
+</style>
 </head>
 <body>
   <header>
@@ -424,24 +333,8 @@ main{
 
     <section class="canvasWrap">
       <div class="canvasToolbar" id="canvasToolbar">
-
-        <div id="tbMini" class="tbMini" title="Expand toolbox">
-          <button id="tbExpandBtn" class="tbMiniBtn" type="button">⟫</button>
-        </div>
-
-        <div class="tbDrag" id="tbDrag"><span class="tbTitle">⋮⋮ Toolbox</span><button id="tbCollapseBtn" class="tbIconBtn" type="button" title="Collapse/expand toolbox">⟪</button></div>
-        <div class="modeRow" title="Wissel tussen canvas-pan en objectbewerking">
-          <span class="modeLbl">Mode</span>
-          <div class="seg" role="group" aria-label="Interaction mode">
-            <button id="modeCanvasBtn" class="segBtn" type="button">Canvas</button>
-            <button id="modeObjectBtn" class="segBtn active" type="button">Object</button>
-          </div>
-        </div>
-
-        <button id="magnifierBtn" class="secondary">🔍 Magnifier</button>
-        <button id="resetViewBtn" class="secondary">⟲ Reset view</button>
-        <div class="small" id="viewHint" style="text-align:center;opacity:.85;">Wheel = zoom • Space/middle = pan</div>
-<button id="addTextBtn">T Voeg tekst</button>
+        <div class="tbDrag" id="tbDrag">⋮⋮ Toolbox</div>
+        <button id="addTextBtn">T Voeg tekst</button>
         <button id="deleteBtn" class="danger" disabled>🗑 Verwijder</button>
         <button id="lockBtn" class="secondary" disabled>🔒 Lock</button>
         <button id="bringFrontBtn" class="secondary" disabled>⬆ Naar voren</button>
@@ -449,28 +342,10 @@ main{
       </div>
 
       <svg id="stage" viewBox="0 0 210 297" xmlns="http://www.w3.org/2000/svg" aria-label="Layout stage">
-        <defs>
-          <clipPath id="magClip">
-            <circle id="magClipCircle" cx="0" cy="0" r="10"></circle>
-          </clipPath>
-        </defs>
-
-        <g id="viewport">
-          <g id="scene">
-            <rect id="stageBg" x="0" y="0" width="210" height="297" fill="#ffffff"></rect>
-            <g id="items"></g>
-          </g>
-          <g id="overlayBox" pointer-events="none"></g>
-          <g id="overlayHandle" pointer-events="all"></g>
-        </g>
-
-        <!-- Magnifier overlay (non-interactive) -->
-        <g id="magG" pointer-events="none" style="display:none;">
-          <g clip-path="url(#magClip)">
-            <use id="magUse" href="#scene"></use>
-          </g>
-          <circle id="magBorder" cx="0" cy="0" r="10" fill="none" stroke="rgba(231,238,252,.85)" stroke-width="1.2" vector-effect="non-scaling-stroke"></circle>
-        </g>
+        <rect id="stageBg" x="0" y="0" width="210" height="297" fill="#ffffff"></rect>
+        <g id="items"></g>
+        <g id="overlayBox" pointer-events="none"></g>
+        <g id="overlayHandle" pointer-events="all"></g>
       </svg>
 
       <div id="toast" class="toast"></div>
@@ -596,9 +471,9 @@ main{
         </div>
 
         <div class="field" id="bgDominantWrap" style="display:none;">
-          <label>SVG-bestand kiezen</label>
-          <input id="bgDominantFile" type="file" accept=".svg,image/svg+xml" />
-          <div class="small">Kies een SVG om de dominante kleur te bepalen (best effort). Dit bestand wordt niet als element toegevoegd.</div>
+          <label>SVG asset</label>
+          <select id="bgDominantAssetSelect"></select>
+          <div class="small">Gebaseerd op de meest voorkomende kleur in de SVG (best effort).</div>
           <div class="row" style="margin-top:8px;">
             <div id="bgDominantSwatch" class="pill" style="display:flex; gap:8px; align-items:center;">
               <span id="bgDominantSwatchBox" style="width:14px;height:14px;border-radius:4px;border:1px solid rgba(231,238,252,.18);background:#ffffff;display:inline-block;"></span>
@@ -687,49 +562,10 @@ main{
 
   // -------- DOM refs --------
   const stage = document.getElementById('stage');
-  const viewportG = document.getElementById('viewport');
-  const sceneG = document.getElementById('scene');
   const stageBg = document.getElementById('stageBg');
   const itemsG = document.getElementById('items');
   const overlayBoxG = document.getElementById('overlayBox');
   const overlayHandleG = document.getElementById('overlayHandle');
-
-  // Viewport tools
-  const magnifierBtn = document.getElementById('magnifierBtn');
-  const resetViewBtn = document.getElementById('resetViewBtn');
-
-  const modeCanvasBtn = document.getElementById('modeCanvasBtn');
-  const modeObjectBtn = document.getElementById('modeObjectBtn');
-
-  // Interaction mode:
-  // - 'canvas': objecten niet selecteerbaar/verplaatsbaar; linkermuisknop = pan
-  // - 'object': objecten selecteerbaar/verplaatsbaar; pan via space/middle
-  let interactionMode = 'object';
-
-  function setInteractionMode(mode){
-    interactionMode = mode === 'canvas' ? 'canvas' : 'object';
-    modeCanvasBtn.classList.toggle('active', interactionMode === 'canvas');
-    modeObjectBtn.classList.toggle('active', interactionMode === 'object');
-    // Visual hint/cursor
-    stage.classList.toggle('stageCanvas', interactionMode === 'canvas');
-    const hint = (interactionMode === 'canvas')
-      ? 'Canvas mode: drag = pan • Wheel = zoom'
-      : 'Object mode: select/drag object • Wheel = zoom • Space/middle = pan';
-    const vh = document.getElementById('viewHint');
-    if(vh) vh.textContent = hint;
-    // In canvas mode, clear selection overlays so we don’t imply editability
-    if(interactionMode === 'canvas'){
-      deselect();
-    }
-    state.meta.updatedAt = nowIso();
-  }
-
-  modeCanvasBtn.addEventListener('click', () => setInteractionMode('canvas'));
-  modeObjectBtn.addEventListener('click', () => setInteractionMode('object'));
-  const magG = document.getElementById('magG');
-  const magUse = document.getElementById('magUse');
-  const magClipCircle = document.getElementById('magClipCircle');
-  const magBorder = document.getElementById('magBorder');
 
   const svgFile = document.getElementById('svgFile');
   const assetName = document.getElementById('assetName');
@@ -782,7 +618,9 @@ main{
   const bgFromElementWrap = document.getElementById('bgFromElementWrap');
   const bgFromElementSelect = document.getElementById('bgFromElementSelect');
   const bgFromElementColors = document.getElementById('bgFromElementColors');
-  const bgDominantWrap = document.getElementById('bgDominantWrap');  const bgDominantSwatchBox = document.getElementById('bgDominantSwatchBox');
+  const bgDominantWrap = document.getElementById('bgDominantWrap');
+  const bgDominantAssetSelect = document.getElementById('bgDominantAssetSelect');
+  const bgDominantSwatchBox = document.getElementById('bgDominantSwatchBox');
   const bgDominantSwatchText = document.getElementById('bgDominantSwatchText');
   const applyDominantBtn = document.getElementById('applyDominantBtn');
 
@@ -790,47 +628,6 @@ main{
 
   // -------- Draggable toolbox --------
   const canvasToolbar = document.getElementById('canvasToolbar');
-
-  const tbCollapseBtn = document.getElementById('tbCollapseBtn');
-  const tbMini = document.getElementById('tbMini');
-  const tbExpandBtn = document.getElementById('tbExpandBtn');
-
-  // Toolbox collapse state (persisted)
-  const TB_COLLAPSE_KEY = 'meta_toolbox_collapsed_v1';
-  function setToolboxCollapsed(collapsed){
-    canvasToolbar.classList.toggle('collapsed', !!collapsed);
-    if(tbCollapseBtn) tbCollapseBtn.textContent = collapsed ? '⟫' : '⟪';
-    try{ localStorage.setItem(TB_COLLAPSE_KEY, collapsed ? '1' : '0'); }catch(_){}
-  }
-  function toggleToolbox(){ setToolboxCollapsed(!canvasToolbar.classList.contains('collapsed')); }
-
-  if(tbCollapseBtn) tbCollapseBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); toggleToolbox(); });
-
-  // Prevent toolbox-drag handler from hijacking button clicks
-  if(tbCollapseBtn){
-    tbCollapseBtn.addEventListener('pointerdown', (e)=>{ e.stopPropagation(); });
-    tbCollapseBtn.addEventListener('mousedown', (e)=>{ e.stopPropagation(); });
-  }
-  if(tbExpandBtn){
-    tbExpandBtn.addEventListener('pointerdown', (e)=>{ e.stopPropagation(); });
-    tbExpandBtn.addEventListener('mousedown', (e)=>{ e.stopPropagation(); });
-  }
-  if(tbExpandBtn) tbExpandBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); setToolboxCollapsed(false); });
-
-  // Restore
-  try{ if(localStorage.getItem(TB_COLLAPSE_KEY) === '1') setToolboxCollapsed(true); }catch(_){}
-
-  // Shortcut: Tab toggles toolbox (unless typing)
-  window.addEventListener('keydown', (e)=>{
-    if(e.key === 'Tab'){
-      const t = e.target;
-      const typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
-      if(!typing){
-        e.preventDefault();
-        toggleToolbox();
-      }
-    }
-  });
   const tbDrag = document.getElementById('tbDrag');
   const canvasWrap = document.querySelector('.canvasWrap');
 
@@ -1059,7 +856,7 @@ main{
   function collectEffectiveColorsByElement(){
     const res = [];
     for(const el of state.elements){
-      const name = elementDisplayName(el);
+      const name = el.name || el.id;
       if(el.type === 'svg'){
         const asset = state.assets[el.assetId];
         if(!asset) continue;
@@ -1143,179 +940,6 @@ main{
     const p = pt.matrixTransform(inv);
     return {x:p.x, y:p.y};
   }
-
-  // -------- Viewport (pan/zoom) --------
-  const BASE_VB = { x: 0, y: 0, w: state.page.width, h: state.page.height };
-
-  // Persisted UI view state
-  state.meta.ui = state.meta.ui || {};
-  state.meta.ui.view = state.meta.ui.view || { x: 0, y: 0, z: 1 }; // z = zoom factor (1=normal)
-
-  const Z_MIN = 1/20;   // 20× uitzoomen
-  const Z_MAX = 100;    // 100× inzoomen
-
-  let activeTool = null; // null | 'magnifier'
-  let spaceDown = false;
-
-  function clampZoom(z){ return clamp(z, Z_MIN, Z_MAX); }
-
-  function applyView(){
-    const v = state.meta.ui.view;
-    v.z = clampZoom(v.z || 1);
-    const w = BASE_VB.w / v.z;
-    const h = BASE_VB.h / v.z;
-    stage.setAttribute('viewBox', `${round(v.x,4)} ${round(v.y,4)} ${round(w,4)} ${round(h,4)}`);
-  }
-
-  function zoomAt(stagePt, factor){
-    const v = state.meta.ui.view;
-    const oldZ = clampZoom(v.z || 1);
-    const newZ = clampZoom(oldZ * factor);
-
-    if(newZ === oldZ) return;
-
-    const oldW = BASE_VB.w / oldZ;
-    const oldH = BASE_VB.h / oldZ;
-    const newW = BASE_VB.w / newZ;
-    const newH = BASE_VB.h / newZ;
-
-    // Keep the stagePt stable under cursor
-    const rx = (stagePt.x - v.x) / oldW;
-    const ry = (stagePt.y - v.y) / oldH;
-    v.x = stagePt.x - rx * newW;
-    v.y = stagePt.y - ry * newH;
-    v.z = newZ;
-
-    state.meta.updatedAt = nowIso();
-    applyView();
-    renderSelectionOverlay(); // keep box aligned
-    if(activeTool === 'magnifier') updateMagnifier(stagePt);
-  }
-
-  function resetView(){
-    state.meta.ui.view = { x: 0, y: 0, z: 1 };
-    state.meta.updatedAt = nowIso();
-    applyView();
-    renderSelectionOverlay();
-    toast('View reset.');
-  }
-
-  // Pan (space or middle mouse)
-  let panning = false;
-    stage.classList.remove('dragging');
-  let panStart = null;
-
-  stage.addEventListener('wheel', (evt) => {
-    // Always treat wheel as zoom (desktop-editor behavior)
-    evt.preventDefault();
-    const p = screenToStagePoint(evt);
-    const factor = Math.pow(1.0018, -evt.deltaY);
-    zoomAt(p, factor);
-  }, { passive:false });
-
-  window.addEventListener('keydown', (e) => {
-    if(e.code === 'Space'){
-      spaceDown = true;
-      stage.classList.add('stagePan');
-    }
-    const isMac = navigator.platform.toLowerCase().includes('mac');
-    const mod = isMac ? e.metaKey : e.ctrlKey;
-    if(mod && (e.key === '0' || e.key === ')')){
-      e.preventDefault();
-      resetView();
-    }
-  });
-
-  window.addEventListener('keyup', (e) => {
-    if(e.code === 'Space'){
-      spaceDown = false;
-      stage.classList.remove('stagePan');
-      if(!panning) stage.style.cursor = '';
-    }
-  });
-
-  stage.addEventListener('pointerdown', (evt) => {
-    // Pan gesture
-    if(evt.button === 1 || spaceDown || (interactionMode === 'canvas' && evt.button === 0)){
-      evt.preventDefault();
-      evt.stopPropagation();
-      panning = true;
-      if(interactionMode === 'canvas') stage.classList.add('dragging');
-      const v = state.meta.ui.view;
-      panStart = { p: screenToStagePoint(evt), x: v.x, y: v.y, z: v.z };
-      stage.setPointerCapture(evt.pointerId);
-    }
-  }, true);
-
-  stage.addEventListener('pointermove', (evt) => {
-    if(panning && panStart){
-      const p = screenToStagePoint(evt);
-      const dx = p.x - panStart.p.x;
-      const dy = p.y - panStart.p.y;
-      state.meta.ui.view.x = panStart.x - dx;
-      state.meta.ui.view.y = panStart.y - dy;
-      state.meta.updatedAt = nowIso();
-      applyView();
-      renderSelectionOverlay();
-      if(activeTool === 'magnifier') updateMagnifier(p);
-      return;
-    }
-    if(activeTool === 'magnifier'){
-      updateMagnifier(screenToStagePoint(evt));
-    }
-  });
-
-  stage.addEventListener('pointerup', (evt) => {
-    if(!panning) return;
-    panning = false;
-    panStart = null;
-    stage.releasePointerCapture(evt.pointerId);
-  });
-
-  // -------- Magnifier tool --------
-  const magState = { enabled:false, factor: 3.0, radiusPx: 90 };
-
-  function setActiveTool(tool){
-    activeTool = tool;
-    magnifierBtn.classList.toggle('active', tool === 'magnifier');
-    stage.classList.toggle('stageMagnifier', tool === 'magnifier');
-    magState.enabled = tool === 'magnifier';
-    magG.style.display = magState.enabled ? 'block' : 'none';
-    state.meta.updatedAt = nowIso();
-  }
-
-  magnifierBtn.addEventListener('click', () => {
-    setActiveTool(activeTool === 'magnifier' ? null : 'magnifier');
-    toast(activeTool === 'magnifier' ? 'Magnifier aan.' : 'Magnifier uit.');
-  });
-
-  resetViewBtn.addEventListener('click', resetView);
-
-  function pxToSvgUnitsX(px){
-    const vb = stage.viewBox.baseVal;
-    return px * (vb.width / Math.max(1, stage.clientWidth));
-  }
-
-  function updateMagnifier(stagePt){
-    if(!magState.enabled) return;
-
-    const r = pxToSvgUnitsX(magState.radiusPx);
-    magClipCircle.setAttribute('cx', stagePt.x);
-    magClipCircle.setAttribute('cy', stagePt.y);
-    magClipCircle.setAttribute('r', r);
-
-    magBorder.setAttribute('cx', stagePt.x);
-    magBorder.setAttribute('cy', stagePt.y);
-    magBorder.setAttribute('r', r);
-
-    // Scale around cursor point
-    const s = magState.factor;
-    magUse.setAttribute('transform', `translate(${stagePt.x} ${stagePt.y}) scale(${s}) translate(${-stagePt.x} ${-stagePt.y})`);
-  }
-
-  // initial view
-  applyView();
-
 
   
   function elementDisplayName(el){
@@ -1481,7 +1105,6 @@ function renderAll(){
 
       g.addEventListener('pointerdown', (evt) => {
         if(evt.button !== 0) return;
-        if(interactionMode === 'canvas') return;
         evt.stopPropagation();
         select(g.dataset.id);
         const el = elementById(g.dataset.id);
@@ -1890,39 +1513,11 @@ function renderAll(){
       const mode = document.createElement('select');
       mode.innerHTML = `
         <option value="none">Geen mapping</option>
+        <option value="paint">Palet (Paint)</option>
+        <option value="picker">Kleurpicker</option>
         <option value="hex">Hex</option>
         <option value="fromOther">Kleur uit ander element</option>
       `;
-
-
-      const mappedPreview = document.createElement('div');
-      mappedPreview.className = 'small';
-      mappedPreview.style.display = 'flex';
-      mappedPreview.style.alignItems = 'center';
-      mappedPreview.style.gap = '8px';
-
-      const mappedChip = document.createElement('span');
-      mappedChip.className = 'colorChip';
-      mappedChip.style.width = '14px';
-      mappedChip.style.height = '14px';
-      mappedChip.style.border = '1px solid rgba(0,0,0,.25)';
-
-      const mappedCode = document.createElement('span');
-      mappedCode.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
-
-      mappedPreview.appendChild(mappedChip);
-      mappedPreview.appendChild(mappedCode);
-
-      function setPreview(val){
-        const v = (val||"").trim();
-        if(!v){
-          mappedChip.style.background = 'transparent';
-          mappedCode.textContent = '—';
-          return;
-        }
-        mappedChip.style.background = v;
-        mappedCode.textContent = v;
-      }
 
       const pick = document.createElement('input');
       pick.type = 'color';
@@ -1991,7 +1586,6 @@ function renderAll(){
 
 
       const cur = el.colorMap[orig] || "";
-      setPreview(cur);
       if(!cur) mode.value = 'none';
       else if(cur.startsWith('#')) mode.value = 'hex';
       else if(cur.startsWith('rgb') || cur.startsWith('hsl')) mode.value = 'picker';
@@ -2004,12 +1598,11 @@ function renderAll(){
       other.value = cur;
 
       function showControls(){
-        // Phase E scope: only hex + fromOther
-        pick.style.display = 'none';
-        grid.style.display = 'none';
+        pick.style.display = (mode.value==='picker') ? 'block' : 'none';
         hex.style.display = (mode.value==='hex') ? 'block' : 'none';
         other.style.display = (mode.value==='fromOther') ? 'block' : 'none';
         otherList.style.display = (mode.value==='fromOther') ? 'block' : 'none';
+        grid.style.display = (mode.value==='paint') ? 'grid' : 'none';
       }
 
       function setMap(mapped){
@@ -2019,7 +1612,6 @@ function renderAll(){
         } else {
           delete el.colorMap[orig];
         }
-        setPreview(mapped || "");
         state.meta.updatedAt = nowIso();
         renderAll();
       }
@@ -2038,7 +1630,6 @@ function renderAll(){
       mapLine.textContent = '→ ' + (el.colorMap[orig] || '(geen mapping)');
 
       right.appendChild(mode);
-      right.appendChild(mappedPreview);
       right.appendChild(pick);
       right.appendChild(hex);
       right.appendChild(other);
@@ -2158,14 +1749,7 @@ function renderAll(){
   
   exportSvgBtn.addEventListener('click', () => {
     const svgText = exportCanvasToSvg();
-    const name = `canvas_${(state.meta.title || 'layout').replace(/\s+/g,'_')}.svg`;
-    download(name, svgText, "image/svg+xml");
-    try{
-      const blob = new Blob([svgText], {type:"image/svg+xml"});
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    }catch(e){}
+    download(`canvas_${new Date().toISOString().slice(0,10)}.svg`, svgText, 'image/svg+xml');
     toast("SVG geëxporteerd.");
   });
 
@@ -2174,14 +1758,12 @@ function renderAll(){
     const xmlns = "http://www.w3.org/2000/svg";
     const doc = document.implementation.createDocument(xmlns, "svg", null);
     const root = doc.documentElement;
-
     root.setAttribute("xmlns", xmlns);
     root.setAttribute("viewBox", `0 0 ${state.page.width} ${state.page.height}`);
-    // mm output for print friendliness (editor units are mm)
     root.setAttribute("width", `${state.page.width}mm`);
     root.setAttribute("height", `${state.page.height}mm`);
 
-    // Background
+    // white background
     const bg = doc.createElementNS(xmlns, "rect");
     bg.setAttribute("x","0"); bg.setAttribute("y","0");
     bg.setAttribute("width", String(state.page.width));
@@ -2189,162 +1771,52 @@ function renderAll(){
     bg.setAttribute("fill", state.page.backgroundFill || "#ffffff");
     root.appendChild(bg);
 
-    // Global defs to avoid local collisions
-    const globalDefs = doc.createElementNS(xmlns, "defs");
-    root.appendChild(globalDefs);
-
-    function safePrefixFromId(id){
-      return ("e_" + String(id||"").replace(/[^a-z0-9]+/gi, "_") + "_");
-    }
-
-    function collectIds(node, ids){
-      if(node.nodeType !== 1) return;
-      const el = node;
-      const id = el.getAttribute && el.getAttribute("id");
-      if(id) ids.add(id);
-      for(const ch of el.children) collectIds(ch, ids);
-    }
-
-    function escapeRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
-
-    function replaceInStyleText(cssText, map){
-      let t = cssText;
-      // url(#id) patterns
-      for(const [oldId, newId] of map.entries()){
-        const reUrl = new RegExp(`url\\(\\s*#${escapeRe(oldId)}\\s*\\)`, "g");
-        t = t.replace(reUrl, `url(#${newId})`);
-      }
-      // ID selectors (#id)
-      for(const [oldId, newId] of map.entries()){
-        const reSel = new RegExp(`#${escapeRe(oldId)}\\b`, "g");
-        t = t.replace(reSel, `#${newId}`);
-      }
-      return t;
-    }
-
-    function rewriteAttrValue(v, map){
-      let out = v;
-      // url(#id)
-      out = out.replace(/url\(\s*#([^)]+)\s*\)/g, (m, id) => {
-        const key = id.trim();
-        return map.has(key) ? `url(#${map.get(key)})` : m;
-      });
-      // href="#id" / xlink:href="#id"
-      if(out.startsWith("#")){
-        const key = out.slice(1);
-        if(map.has(key)) out = "#" + map.get(key);
-      }
-      return out;
-    }
-
-    function prefixIdsAndRefs(node, prefix){
-      const ids = new Set();
-      collectIds(node, ids);
-      const map = new Map();
-      ids.forEach(oldId => map.set(oldId, prefix + oldId));
-
-      const walker = doc.createTreeWalker(node, NodeFilter.SHOW_ELEMENT, null);
-      let cur = walker.currentNode;
-      while(cur){
-        const el = cur;
-
-        const oldId = el.getAttribute && el.getAttribute("id");
-        if(oldId && map.has(oldId)) el.setAttribute("id", map.get(oldId));
-
-        const refAttrs = ["fill","stroke","filter","clip-path","mask","marker-start","marker-mid","marker-end","style","href","xlink:href"];
-        for(const a of refAttrs){
-          if(!el.hasAttribute || !el.hasAttribute(a)) continue;
-          const val = el.getAttribute(a);
-          if(!val) continue;
-          if(a === "style"){
-            el.setAttribute("style", rewriteAttrValue(val, map));
-          } else {
-            el.setAttribute(a, rewriteAttrValue(val, map));
-          }
-        }
-
-        if(el.tagName && el.tagName.toLowerCase() === "style"){
-          el.textContent = replaceInStyleText(el.textContent || "", map);
-        }
-
-        cur = walker.nextNode();
-      }
-
-      return node;
-    }
-
-    function importSvgIntoGroup(el, asset, g){
-      const mapped = applyColorMapToSvgText(asset.svgText || "", el.colorMap || {});
-      const parser = new DOMParser();
-      const tmp = parser.parseFromString(mapped, "image/svg+xml");
-      const svgNode = tmp.querySelector("svg");
-      if(!svgNode) return;
-
-      const prefix = safePrefixFromId(el.id);
-
-      const defs = svgNode.querySelector("defs");
-      if(defs){
-        const defsClone = doc.importNode(defs, true);
-        prefixIdsAndRefs(defsClone, prefix);
-        [...defsClone.childNodes].forEach(n => globalDefs.appendChild(n));
-      }
-
-      const vb = asset.viewBox || {w:100,h:100};
-      const sx = el.w / vb.w;
-      const sy = el.h / vb.h;
-
-      const inner = doc.createElementNS(xmlns, "g");
-      inner.setAttribute("transform", `scale(${sx} ${sy})`);
-
-      const wrap = doc.createElementNS(xmlns, "g");
-      [...svgNode.childNodes].forEach(n => {
-        if(n.nodeType === 1 && n.tagName.toLowerCase() === "defs") return;
-        if(n.nodeType === 1 && n.tagName.toLowerCase() === "script") return;
-        wrap.appendChild(doc.importNode(n, true));
-      });
-
-      prefixIdsAndRefs(wrap, prefix);
-      [...wrap.childNodes].forEach(n => inner.appendChild(n));
-
-      g.appendChild(inner);
-    }
-
-    function importTextIntoGroup(el, g){
-      const t = doc.createElementNS(xmlns, "text");
-      t.textContent = el.text ?? "";
-      const anchor = el.textAnchor || "start";
-      const x = (anchor==="middle") ? (el.w/2) : (anchor==="end") ? el.w : 0;
-      const y = (el.fontSize || 10);
-
-      t.setAttribute("x", String(x));
-      t.setAttribute("y", String(y));
-      t.setAttribute("font-family", el.fontFamily || "Inter");
-      t.setAttribute("font-size", String(el.fontSize || 10));
-      t.setAttribute("font-weight", String(el.fontWeight || 400));
-      t.setAttribute("font-style", el.fontStyle || "normal");
-      t.setAttribute("text-decoration", el.textDecoration || "none");
-      t.setAttribute("fill", el.fill || "#111111");
-      t.setAttribute("text-anchor", anchor);
-
-      g.appendChild(t);
-    }
-
     for(const el of state.elements){
       const g = doc.createElementNS(xmlns, "g");
-      const rot = el.rotation ? ` rotate(${el.rotation} ${el.w/2} ${el.h/2})` : "";
-      g.setAttribute("transform", `translate(${el.x} ${el.y})${rot}`);
-
-      if(el.type === "svg"){
+      g.setAttribute("transform", `translate(${el.x} ${el.y})`);
+      if(el.type === 'svg'){
         const asset = state.assets[el.assetId];
         if(!asset) continue;
-        importSvgIntoGroup(el, asset, g);
-      } else if(el.type === "text"){
-        importTextIntoGroup(el, g);
-      }
+        const mapped = applyColorMapToSvgText(asset.svgText, el.colorMap || {});
+        const parser = new DOMParser();
+        const tmp = parser.parseFromString(mapped, "image/svg+xml");
+        const svgNode = tmp.querySelector('svg');
+        if(!svgNode) continue;
 
+        // import children (excluding outer svg)
+        const vb = asset.viewBox || {w:100,h:100};
+        const sx = el.w / vb.w;
+        const sy = el.h / vb.h;
+        const inner = doc.createElementNS(xmlns, "g");
+        inner.setAttribute("transform", `scale(${sx} ${sy})`);
+
+        // copy defs if present
+        const defs = svgNode.querySelector('defs');
+        if(defs){
+          inner.appendChild(doc.importNode(defs, true));
+        }
+        [...svgNode.childNodes].forEach(n => {
+          if(n.nodeType === 1 && n.tagName.toLowerCase() === 'defs') return;
+          if(n.nodeType === 1 && n.tagName.toLowerCase() === 'script') return;
+          inner.appendChild(doc.importNode(n, true));
+        });
+        g.appendChild(inner);
+      } else if(el.type === 'text'){
+        const t = doc.createElementNS(xmlns, "text");
+        t.textContent = el.text ?? "";
+        t.setAttribute("x", (el.textAnchor==="middle") ? String(el.w/2) : (el.textAnchor==="end") ? String(el.w) : "0");
+        t.setAttribute("y", String(el.fontSize || 10));
+        t.setAttribute("font-family", el.fontFamily || "Inter");
+        t.setAttribute("font-size", String(el.fontSize || 10));
+        t.setAttribute("font-weight", String(el.fontWeight || 400));
+        t.setAttribute("font-style", el.fontStyle || "normal");
+        t.setAttribute("text-decoration", el.textDecoration || "none");
+        t.setAttribute("fill", el.fill || "#111111");
+        t.setAttribute("text-anchor", el.textAnchor || "start");
+        g.appendChild(t);
+      }
       root.appendChild(g);
     }
-
     return new XMLSerializer().serializeToString(root);
   }
 
@@ -2502,7 +1974,13 @@ exportBtn.addEventListener('click', () => {
     const infos = collectEffectiveColorsByElement();
     bgFromElementSelect.innerHTML = infos.map(i => `<option value="${i.elementId}">${i.name}</option>`).join('');
     if(!bgFromElementSelect.value && infos.length) bgFromElementSelect.value = infos[0].elementId;
-    // dominant kleur wordt bepaald via gekozen SVG-bestand
+
+    // fill asset select for dominant
+    const aids = Object.keys(state.assets);
+    bgDominantAssetSelect.innerHTML = aids.map(id => `<option value="${id}">${state.assets[id].name}</option>`).join('');
+    if(!bgDominantAssetSelect.value && aids.length) bgDominantAssetSelect.value = aids[0];
+
+    refreshBgFromElementColors();
     refreshBgDominantPreview();
 
     // show/hide
@@ -2550,31 +2028,19 @@ exportBtn.addEventListener('click', () => {
   }
 
   function refreshBgDominantPreview(){
-    const c = dominantFileColor || (state.page.backgroundFill || '#ffffff');
+    const aid = bgDominantAssetSelect.value;
+    const a = state.assets[aid];
+    const c = a ? dominantColorFromSvgText(a.svgText) : "#ffffff";
     bgDominantSwatchBox.style.background = c;
     bgDominantSwatchText.textContent = c;
-    applyDominantBtn.disabled = !dominantFileColor;
-    applyDominantBtn.onclick = () => {
-      if(!dominantFileColor){ toast('Kies eerst een SVG-bestand.'); return; }
-      setCanvasBackground(dominantFileColor);
-    };
+    applyDominantBtn.disabled = !a;
+    applyDominantBtn.onclick = () => setCanvasBackground(c);
   }
 
   bgMode.addEventListener('change', refreshBackgroundUI);
   bgHex.addEventListener('change', () => setCanvasBackground(bgHex.value.trim() || "#ffffff"));
   bgFromElementSelect.addEventListener('change', refreshBgFromElementColors);
-  const bgDominantFile = document.getElementById('bgDominantFile');
-  let dominantFileColor = null;
-  bgDominantFile.addEventListener('change', async () => {
-    const f = bgDominantFile.files && bgDominantFile.files[0];
-    dominantFileColor = null;
-    if(!f){ refreshBgDominantPreview(); return; }
-    try{
-      const txt = await f.text();
-      dominantFileColor = dominantColorFromSvgText(txt);
-    }catch(e){ dominantFileColor = null; }
-    refreshBgDominantPreview();
-  });
+  bgDominantAssetSelect.addEventListener('change', refreshBgDominantPreview);
 
 // Init
   renderAll();
